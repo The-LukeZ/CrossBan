@@ -26,8 +26,14 @@ export async function truthSourcesHandler(
   if (action === "add") {
     const finalValues = new MySet([...sources.toArray(), ...filteredValues]);
     await dbManager.addSourcesOfTruth(ctx.user.id, ctx.guildId, ...finalValues.toArray());
+    for (const v of finalValues.values()) {
+      config.addTruthSource(ctx.guildId, v);
+    }
   } else {
     await dbManager.removeSourcesOfTruth(ctx.guildId, ...filteredValues);
+    for (const v of filteredValues) {
+      config.removeTruthSource(ctx.guildId, v);
+    }
   }
 
   const newSources = await dbManager.getSourcesOfTruth(ctx.guildId);
