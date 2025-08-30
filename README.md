@@ -8,6 +8,14 @@ A Discord bot for ban-synchronization across multiple servers.
 >
 > The license for this code is PolyForm Noncommercial License 1.0.0 - this means everyone is allowed to use it, but you are forbidden to make any money with it and use it for other commercial purposes.
 
+## Features
+
+- Ban synchronization across multiple communities
+- Easy to use and self-host (hopefully lol)
+- Written in TypeScript
+- Uses PostgreSQL 17
+- Dockerized for easy deployment
+
 ## Installation
 
 ### Prerequisites
@@ -114,7 +122,7 @@ However, it happened to me a lot of times, that the database was not initialized
 If nothing helps, terminate it.
 
 > [!CAUTION]
-> This will delete all existing data in the database. So this is is only recommended for development environments, no other solutions work or there is not data yet.
+> This will delete all existing data in the database. So this is only recommended for development environments, no other solutions work or if there is not data yet.
 
 1. Delete the database container of the database.
 2. Delete the volume.
