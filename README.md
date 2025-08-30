@@ -92,9 +92,22 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### Database not found
 
-The initialization script only gets created upon the first database startup. If the database is not found, try the following solutions:
+It can happen, that an error occurs during the docker build process. if the error is, that the database is not found, this is most likely due to the fact, that the `postgres:17` image automatically creates a new database cluster with the name of `$POSTGRES_DB` on startup.
+
+> [!TIP]
+> Check the container's logs before doing anything!
+
+However, it happened to me a lot of times, that the database was not initialized properly. Here are some solutions that may work:
+
+#### Checking the docker-compose, your env-files and the script
+
+1. Make sure, that the `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD` variables are set in your env-file.
+2. make sure that the file name of the env-file is the same as the one used in the docker-compose file **and** the command parameter you used to run `docker compose`.
+3. Make sure you ran the right command.
 
 #### Reinitialize the volume
+
+If nothing helps, terminate it.
 
 > [!DANGER]
 > This will delete all existing data in the database. So this is is only recommended for development environments, no other solutions work or there is not data yet.
@@ -102,9 +115,6 @@ The initialization script only gets created upon the first database startup. If 
 1. Delete the database container of the database.
 2. Delete the volume.
 3. Restart the database container.
-
-> [!HINT]
-> If you face issues with anything else, please create a new Issue in the GitHub repository.
 
 ## License
 
