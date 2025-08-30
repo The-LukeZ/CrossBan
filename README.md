@@ -113,7 +113,7 @@ However, it happened to me a lot of times, that the database was not initialized
 
 If nothing helps, terminate it.
 
-> [!DANGER]
+> [!CAUTION]
 > This will delete all existing data in the database. So this is is only recommended for development environments, no other solutions work or there is not data yet.
 
 1. Delete the database container of the database.
