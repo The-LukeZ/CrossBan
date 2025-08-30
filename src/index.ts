@@ -206,7 +206,7 @@ client.once("clientReady", async (_client) => {
   }
 
   const truthSources = await dbManager.query<{ guild_id: string; user_id: string }>(
-    "SELECT guild_id, user_id FROM truth_sources WHERE enabled = true",
+    "SELECT guild_id, user_id FROM truth_sources",
   );
   truthSources.rows.forEach((row) => {
     config.addTruthSource(row.guild_id, row.user_id);
