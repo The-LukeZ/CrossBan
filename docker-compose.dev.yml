@@ -4,8 +4,7 @@ services:
       context: ./database
       dockerfile: Dockerfile
     container_name: database_dev
-    env_file:
-      - ./.env.local
+    env_file: .env.local
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -21,8 +20,7 @@ services:
       target: development
     depends_on:
       - postgres
-    env_file:
-      - ./.env.local
+    env_file: .env.local
     environment:
       NODE_ENV: "development"
       DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database_dev/${POSTGRES_DB}"
