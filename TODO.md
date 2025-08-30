@@ -24,3 +24,5 @@
       - Ban Members
       - See Audit Log (because it is necessary for the bot to verify ban and unban events)
   - Bot needs to be configured with the appropriate database connection settings. (env-file)
+
+- [ ] Write wiki page about "how to self-host a discord bot"
