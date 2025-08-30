@@ -13,7 +13,7 @@ CMD ["pnpm", "run", "dev"]
 # Production stage
 FROM base AS production
 ENV NODE_ENV=production
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 COPY . .
 RUN pnpm build
 CMD ["node", "dist/index.js"]
