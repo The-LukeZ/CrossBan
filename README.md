@@ -35,7 +35,7 @@ Edit `.env.local` and replace the placeholders with your actual values.
 3. **Start the application**
 
 ```bash
-docker compose -f 'docker-compose.dev.yml' up -d --build
+docker compose --env-file .env.local -f 'docker-compose.dev.yml' up -d --build
 ```
 
 <details>
@@ -89,6 +89,10 @@ Now you just have to fill in some proper credentials.
 ```bash
 docker-compose -f docker-compose.prod.yml up -d
 ```
+
+---
+
+## Troubleshooting
 
 ### Database not found
 
