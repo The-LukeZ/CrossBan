@@ -42,6 +42,12 @@ class BotConfig {
     this._truthSources.set(guildId, _sources);
   }
 
+  removeTruthSource(guildId: string, source: string) {
+    const _sources = this._truthSources.get(guildId);
+    _sources?.delete(source);
+    if (_sources) this._truthSources.set(guildId, _sources);
+  }
+
   isTruthSourceFor(guildId: string, userId: string) {
     return userId !== this.BSID && !!this._truthSources.get(guildId)?.has(userId);
   }
