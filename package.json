@@ -1,20 +1,27 @@
 {
   "name": "crossban-bot",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.0-beta",
+  "description": "A Discord bot for synchronizing bans across multiple communities.",
   "main": "./dist/index.js",
   "scripts": {
     "dev": "npx tsx src/index.ts",
-    "build": "tsc",
+    "build": "npx tsc",
     "start": "node dist/index.js",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
-    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d --build",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
     "docker:dev:down": "docker-compose -f docker-compose.dev.yml down",
     "docker:prod:down": "docker-compose -f docker-compose.prod.yml down"
   },
-  "keywords": [],
+  "keywords": [
+    "discord",
+    "bot",
+    "ban",
+    "cross-server",
+    "moderation",
+    "synchronization"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "PolyForm Noncommercial License 1.0.0",
   "packageManager": "pnpm@10.15.0",
   "type": "commonjs",
   "dependencies": {
@@ -22,12 +29,11 @@
     "djs-command-helper": "^4.2.2",
     "dotenv": "^17.2.1",
     "pg": "^8.16.3",
-    "tsx": "^4.20.5"
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
-    "@types/pg": "^8.15.5",
-    "nodemon": "^3.1.10",
-    "typescript": "^5.9.2"
+    "@types/pg": "^8.15.5"
   }
 }
