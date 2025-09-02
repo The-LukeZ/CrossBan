@@ -1,4 +1,5 @@
 import {
+  AllowedMentionsTypes,
   APIMessageTopLevelComponent,
   JSONEncodable,
   Routes,
@@ -131,7 +132,7 @@ export class UnbanMessageBuilder {
   private static buildActionRow() {
     return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
       new StringSelectMenuBuilder()
-        .setCustomId("9dc910a99315435190a7a00df15864fa")
+        .setCustomId("unban")
         .setPlaceholder("Take Action!")
         .addOptions(
           new StringSelectMenuOptionBuilder()
@@ -189,6 +190,9 @@ export class UnbanLogger {
     return {
       flags: ComponentsV2Flags,
       components: UnbanMessageBuilder.build(details, type),
+      allowed_mentions: {
+        users: [details.user.id],
+      },
     };
   }
 
@@ -205,7 +209,7 @@ export class UnbanLogger {
         executorId: data.executorId,
         guildIconUrl: data.guildIconUrl,
         guildName: data.guildName,
-        timestamp: ~(data.ban.createdAt.getTime() / 1000),
+        timestamp: ~~(data.ban.createdAt.getTime() / 1000),
         user: data.user,
       },
       data.type,
