@@ -1,8 +1,8 @@
 import type { Client, Guild, User } from "discord.js";
 import { GuildConfig, type BanEvent, type BanEventInsert } from "../database/types";
 import { dbManager } from "../database/manager";
-import { dbGuildConfigToObject } from "../database/utils";
-import { UnbanLogger, UnbanMessageType } from "./unbanLogger";
+import { getUnbanLogger, UnbanMessageType } from "./unbanLogger";
+import { sendLog } from "./logger";
 
 class BanSyncManager {
   private client?: Client<true>;
@@ -32,6 +32,7 @@ class BanSyncManager {
     if (!this.enabled) return;
 
     const banEvent = await dbManager.addBan(data);
+    sendLog(["Ban event created", banEvent, "Syncing..."]);
     await this.syncBanToGuilds(banEvent, data.sourceGuild);
   }
 
@@ -45,28 +46,43 @@ class BanSyncManager {
     // Get all guild configs that have auto-ban enabled, excluding the source guild
     const autoBanGuilds = await dbManager.getGuildConfigsForAutoban();
     const targetGuilds = autoBanGuilds.filter((config) => config.guildId !== sourceGuildId);
+    sendLog([
+      "Found auto_ban guilds for ban sync:",
+      ...autoBanGuilds.map((config) => config.guildId),
+      "Target guilds filtered:",
+      ...targetGuilds.map((config) => config.guildId),
+      "Starting ban sync...",
+    ]);
 
     const successfulGuildIds: string[] = [];
     for (const guildConfig of targetGuilds) {
+      const logs = [`Syncing ban to guild ${guildConfig.guildId}...`];
       const guild = this.client.guilds.cache.get(guildConfig.guildId);
 
       if (!guild || !guild.available) {
+        logs.push(`Failed to sync ban to guild ${guildConfig.guildId}: Guild not found or unavailable.`);
         console.error(`Failed to sync ban to guild ${guildConfig.guildId}: Guild not found or unavailable.`);
+        sendLog(logs);
         continue;
       }
 
       try {
+        logs.push(`Banning user ${event.userId} in guild ${guild.name} (${guild.id})`);
         await guild.bans.create(event.userId, {
           reason: `Synced ban from source ${event.sourceGuild}. Reason: ${event.reason}`,
         });
+        logs.push(`Successfully synced ban to guild ${guild.name}`);
         successfulGuildIds.push(guildConfig.guildId);
         console.log(`Successfully synced ban to guild ${guild.name}`);
       } catch (error) {
         console.error(`Failed to sync ban to guild ${guildConfig.guildId}:`, error);
+      } finally {
+        sendLog(logs);
       }
     }
 
     if (successfulGuildIds.length > 0) {
+      sendLog(["Successfully synced bans to guilds:", ...successfulGuildIds.map((id) => `- ${id}`)]);
       for (const guildId of successfulGuildIds) {
         await dbManager.createGuildBan({
           userId: event.userId,
@@ -82,14 +98,20 @@ class BanSyncManager {
     // Get all guild configs where unbanning should occur, excluding the source guild
     const guildConfigs = await dbManager.getAllGuildConfigs();
     const targetGuilds = guildConfigs.filter((config) => config.guildId !== sourceGuild.id && config.enabled);
+    sendLog(["Found target guilds for unban sync:", ...targetGuilds.map((config) => config.guildId)]);
 
     // Implement unban logic here
     for (const cfg of targetGuilds) {
+      const logs = [`Unbanning user ${ban.userId} in guild ${cfg.guildId}`];
       if (cfg.unbanMode === "AUTO") {
+        logs.push(`Auto-unban mode: Proceeding to unban user in guild ${cfg.guildId}`);
         await this.reallyUnbanUserFromGuild(ban.userId, cfg.guildId);
       } else {
-        await this.sendUnbanLogToServer(ban, sourceGuild, cfg, executorId);
+        logs.push(`Manual unban mode: Logging unban action for guild ${cfg.guildId}`);
+        const hasSent = await this.sendUnbanLogToServer(ban, sourceGuild, cfg, executorId);
+        logs.push(`Unban log ${hasSent ? "successfully" : "failed"} sent for guild ${cfg.guildId}`);
       }
+      sendLog(logs);
     }
   }
 
@@ -98,7 +120,7 @@ class BanSyncManager {
     if (!guild) return;
 
     try {
-      await guild.bans.remove(userId);
+      await guild.bans.remove(userId, `Synced unban from ${guildId}`);
       console.log(`Successfully unbanned user ${userId} from guild ${guild.name}`);
     } catch (error) {
       console.error(`Failed to unban user ${userId} from guild ${guildId}:`, error);
@@ -108,28 +130,39 @@ class BanSyncManager {
   /**
    * This method is called when a review of an unban is needed.
    */
-  private async sendUnbanLogToServer(ban: BanEvent, guild: Guild, guildConfig: GuildConfig, executorId: string): Promise<void> {
-    if (!this.client) return;
-    if (!guildConfig.loggingChannelId) return;
+  private async sendUnbanLogToServer(
+    ban: BanEvent,
+    guild: Guild,
+    guildConfig: GuildConfig,
+    executorId: string,
+  ): Promise<boolean> {
+    if (!this.client) return false;
+    if (!guildConfig.loggingChannelId) {
+      console.warn(`No logging channel configured for guild ${guild.name}. Skipping...`);
+      return false;
+    }
 
     const user = await this.client.users.fetch(ban.userId).catch(() => null);
     if (!user) {
       console.error(`Failed to fetch user ${ban.userId} for unban log. Canceling log.`);
-      return;
+      return false;
     }
 
     try {
-      await new UnbanLogger().sendLog({
+      await getUnbanLogger().sendLog({
         ban: ban,
         executorId: executorId,
         user: user,
         guildName: guild.name,
         loggingChannelId: guildConfig.loggingChannelId,
-        type: UnbanMessageType.REVIEW
+        type: UnbanMessageType.REVIEW,
       });
+      return true;
     } catch (error) {
       console.error(`Failed to send unban log to channel ${guildConfig.loggingChannelId}:`, error);
     }
+
+    return false;
   }
 
   async removeBan(data: { userId: string; sourceGuild: Guild; executorId: string }): Promise<void> {
@@ -142,8 +175,11 @@ class BanSyncManager {
       console.error("BanSyncManager: Client not set. Cannot remove bans.");
     }
 
+    sendLog(`Removing the ban for ${data.userId} in ${data.sourceGuild.name}`);
+
     await dbManager.removeBan(data.userId); // doesnt actually remove the ban, but marks it as revoked
     await this.syncUnbanToGuilds(ban, data.sourceGuild, data.executorId);
+    sendLog(`Finished processing unban sync for ${data.userId}`);
   }
 }
 
