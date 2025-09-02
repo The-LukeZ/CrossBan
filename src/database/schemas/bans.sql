@@ -9,7 +9,7 @@ CREATE TABLE
         revoked BOOLEAN DEFAULT false
     );
 
--- Guild bans only has the synced bans in it. The ban events are in the other table above.
+-- Ban table only has the synced bans in it. The ban events are in the other table above.
 CREATE TABLE
     IF NOT EXISTS guild_bans (
         id SERIAL PRIMARY KEY,
