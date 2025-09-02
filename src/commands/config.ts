@@ -6,6 +6,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("config")
     .setDescription("Configure the bot")
+    .setDefaultMemberPermissions(8) // Admin
     .addSubcommand((sub) => sub.setName("sources-of-truth").setDescription("Configure the sources of truth for this server"))
     .addSubcommand((sub) =>
       sub
