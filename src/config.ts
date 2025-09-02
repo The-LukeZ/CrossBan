@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-const envName = process.env.NODE_ENV === "development" ? "local" : "production";
+const envName = process.env.NODE_ENV === "production" ? "production" : "local";
 
 dotenv.config({
   path: `./.env.${envName}`,
@@ -57,7 +57,7 @@ const botConfig = new BotConfig(
   process.env.GUILDS?.split(",").map((id) => id.trim()) || [],
   process.env.DATABASE_URL || "",
   process.env.BOT_TOKEN || "",
-  process.env.POSTGRES_USER || "",
+  process.env.POSTGRES_USER || "crossban",
   process.env.NODE_ENV || "development",
   process.env.POSTGRES_PASSWORD,
   process.env.POSTGRES_DB,
