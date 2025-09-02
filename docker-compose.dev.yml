@@ -4,13 +4,14 @@ services:
     container_name: database_dev
     env_file: .env.local
     environment:
-      POSTGRES_USER: "${POSTGRES_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
     ports:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   bot:
     build:
@@ -20,12 +21,14 @@ services:
       - postgres
     env_file: .env.local
     environment:
-      NODE_ENV: "development"
-      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database_dev/${POSTGRES_DB}"
-      BOT_TOKEN: "${BOT_TOKEN}"
+      NODE_ENV: development
+      DATABASE_URL: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB"
+      BOT_TOKEN: $BOT_TOKEN
     volumes:
       - .:/app
       - /app/node_modules
+    restart: unless-stopped
 
 volumes:
   postgres_dev_data:
+    driver: local
