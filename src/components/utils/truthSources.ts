@@ -43,7 +43,7 @@ export async function truthSourcesHandler(
     flags: ComponentsV2Flags,
   });
 
-  if (ctx.values.some((id) => id === ctx.client.user.id || config.BSID === id)) {
+  if (action === "add" && ctx.values.some((id) => id === ctx.client.user.id || config.BSID === id)) {
     const userIds = ctx.values.filter((id) => id === ctx.client.user.id || config.BSID === id);
     await ctx.followUp({
       flags: EphemeralV2Flags,
