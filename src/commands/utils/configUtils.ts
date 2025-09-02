@@ -55,9 +55,12 @@ async function handleUnbanSync(ctx: ChatInputCommandInteraction<"cached">) {
   // Just set the unban mode (directly from the comand option)
   const mode = ctx.options.getString("behavior", true) as UnbanMode;
   await dbManager.updateGuildConfig(ctx.guildId, { unbanMode: mode });
-  const texts = [new TextDisplayBuilder().setContent(`✅ Unban mode set to **${mode}**.`)];
+  const container = new ContainerBuilder()
+    .setAccentColor(Colors.Green)
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(`✅ Unban mode set to **${mode}**.`));
   if (mode === "REVIEW") {
-    texts.push(
+    container.addSeparatorComponents((s) => s);
+    container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
         "⚠️ **Don't forget to set a logging channel with `/config unban-logging` - otherwise you won't see unban notifications.**",
       ),
@@ -65,7 +68,7 @@ async function handleUnbanSync(ctx: ChatInputCommandInteraction<"cached">) {
   }
   await ctx.reply({
     flags: EphemeralV2Flags,
-    components: [new ContainerBuilder().setAccentColor(Colors.Green).addTextDisplayComponents(...texts)],
+    components: [container],
   });
 }
 
