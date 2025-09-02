@@ -1,9 +1,8 @@
 import { StringSelectMenuInteraction } from "discord.js";
 
-export default {
-  prefix: "unban",
+export const prefix = "unban";
 
-  async run(ctx: StringSelectMenuInteraction<"cached">) {
-    await ctx.reply("Not implemented yet, sorry.");
-  },
-};
+export async function run(ctx: StringSelectMenuInteraction<"cached">) {
+  await ctx.message.edit({ components: ctx.message.components });
+  await ctx.reply("Not implemented yet, sorry.");
+}
