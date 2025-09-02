@@ -129,7 +129,7 @@ export class DBManager {
 
   async addBan(record: BanEventInsert): Promise<BanEvent> {
     const query = `
-      INSERT INTO bans (user_id, source_guild_id, source_user_id, reason)
+      INSERT INTO ban_events (user_id, source_guild, source_user, reason)
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
@@ -141,7 +141,7 @@ export class DBManager {
 
   async getBanById(id: bigint): Promise<BanEvent | null> {
     const query = `
-      SELECT * FROM bans WHERE id = $1
+      SELECT * FROM ban_events WHERE id = $1
     `;
     const result = await this.query(query, [id]);
 
@@ -151,7 +151,7 @@ export class DBManager {
   }
 
   async getBan(userId: string, onlyActive = true): Promise<BanEvent | null> {
-    const result = await this.query("SELECT * FROM bans WHERE user_id = $1 AND revoked = $2", [userId, !onlyActive]);
+    const result = await this.query("SELECT * FROM ban_events WHERE user_id = $1 AND revoked = $2", [userId, !onlyActive]);
 
     if (result.rows.length === 0) return null;
 
@@ -159,19 +159,67 @@ export class DBManager {
   }
 
   async removeBan(userId: string): Promise<void> {
-    await this.query("UPDATE bans SET revoked = TRUE WHERE user_id = $1 AND revoked = FALSE", [userId]);
+    await this.query("UPDATE ban_events SET revoked = TRUE WHERE user_id = $1 AND revoked = FALSE", [userId]);
   }
 
   async createGuildBan(data: GuildBanInsert): Promise<GuildBan> {
     const query = `
       INSERT INTO guild_bans (user_id, guild_id, is_banned, ban_event_id)
       VALUES ($1, $2, $3, $4)
+      ON CONFLICT (user_id, guild_id, is_banned) 
+      DO UPDATE SET 
+        ban_event_id = EXCLUDED.ban_event_id,
+        last_updated = NOW()
       RETURNING *
     `;
     const values = [data.userId, data.guildId, data.isBanned ?? true, data.banEventId ?? null];
 
     const res = await this.query(query, values);
     return dbGuildBanToObject(res.rows[0]);
+  }
+
+  async getGuildBan(userId: string, guildId: string): Promise<GuildBan | null> {
+    const query = `
+      SELECT * FROM guild_bans 
+      WHERE user_id = $1 AND guild_id = $2 AND is_banned = TRUE
+    `;
+    const result = await this.query(query, [userId, guildId]);
+
+    if (result.rows.length === 0) return null;
+
+    return dbGuildBanToObject(result.rows[0]);
+  }
+
+  async removeGuildBan(userId: string, guildId: string): Promise<void> {
+    await this.query("UPDATE guild_bans SET is_banned = FALSE, last_updated = NOW() WHERE user_id = $1 AND guild_id = $2", [userId, guildId]);
+  }
+
+  async getGuildBansForUser(userId: string): Promise<GuildBan[]> {
+    const result = await this.query("SELECT * FROM guild_bans WHERE user_id = $1 AND is_banned = TRUE", [userId]);
+    return result.rows.map(dbGuildBanToObject);
+  }
+
+  async getGuildBansForGuild(guildId: string): Promise<GuildBan[]> {
+    const result = await this.query("SELECT * FROM guild_bans WHERE guild_id = $1 AND is_banned = TRUE", [guildId]);
+    return result.rows.map(dbGuildBanToObject);
+  }
+
+  async getBanEventWithGuildBans(banEventId: bigint): Promise<{ banEvent: BanEvent; guildBans: GuildBan[] } | null> {
+    const banEventResult = await this.query("SELECT * FROM ban_events WHERE id = $1", [banEventId]);
+    
+    if (banEventResult.rows.length === 0) return null;
+
+    const guildBansResult = await this.query("SELECT * FROM guild_bans WHERE ban_event_id = $1", [banEventId]);
+
+    return {
+      banEvent: dbBanEventToObject(banEventResult.rows[0]),
+      guildBans: guildBansResult.rows.map(dbGuildBanToObject)
+    };
+  }
+
+  async isUserBannedInGuild(userId: string, guildId: string): Promise<boolean> {
+    const result = await this.query("SELECT 1 FROM guild_bans WHERE user_id = $1 AND guild_id = $2 AND is_banned = TRUE", [userId, guildId]);
+    return result.rows.length > 0;
   }
 
   async getSourcesOfTruth(guildId: string): Promise<MySet<string>> {
