@@ -4,8 +4,8 @@ export function dbBanEventToObject(row: any): BanEvent {
   return {
     id: Number(row.id),
     userId: row.user_id,
-    sourceGuild: row.source_guild_id,
-    sourceUser: row.source_user_id,
+    sourceGuild: row.source_guild,
+    sourceUser: row.source_user,
     reason: row.reason,
     createdAt: new Date(row.created_at),
     revoked: !!row.revoked,
