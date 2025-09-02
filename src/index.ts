@@ -1,21 +1,19 @@
-import { Client, Collection, GatewayIntentBits, Options } from "discord.js";
+import { Client, Collection, Events, GatewayIntentBits, Options } from "discord.js";
 import { config } from "./config.js";
 import { dbManager } from "./database/manager.js";
 import InteractionHandler from "./utils/interactionHandler.js";
 
 import { readdirSync } from "node:fs";
 import { join as pathJoin } from "path";
-// @ts-ignore | Because sometimes we don't use it
-import { deployCommands } from "djs-command-helper";
 import { getBanSyncManager, initBanSyncManager } from "./utils/banSyncManager.js";
 import { initUnbanLogger } from "./utils/unbanLogger.js";
+import { deployCommands } from "./utils/commandHelper.js";
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildModeration,
   ],
   allowedMentions: { parse: [], repliedUser: false },
@@ -27,13 +25,12 @@ const client = new Client({
 
 let commands = new Collection<string, any>();
 let components = new Collection<string, any>();
-let eventListeners = new Map<string, string[]>();
 
 const FILE_EXTENSION = config.NODE_ENV === "development" ? ".ts" : ".js";
 
 // Function to load commands
-export async function loadCommands() {
-  const newCommands = new Collection<string, any>();
+async function loadCommands() {
+  const newCommands = new Collection<string, () => Promise<any>>();
   const commandsPath = pathJoin(__dirname, "commands");
   const commandFiles = readdirSync(commandsPath, { encoding: "utf-8" })
     .filter((fn) => fn.endsWith(FILE_EXTENSION))
@@ -48,13 +45,12 @@ export async function loadCommands() {
 
   for (const file of commandFiles) {
     try {
-      const filePath = "file://" + file;
-      // Add cache-busting query parameter to ensure we get the latest version
-      const command = (await import(filePath)).default;
+      const command = require(file);
+
       if (typeof command == "object" && "data" in command && "run" in command) {
         newCommands.set(command.data.name, command);
       } else {
-        console.error(`The command at ${filePath} is missing a required "data" or "run" property.`);
+        console.error(`The command at ${file} is missing a required "data" or "run" property.`);
       }
     } catch (error) {
       console.error(`Error loading command file ${file}`, {
@@ -72,7 +68,7 @@ export async function loadCommands() {
 }
 
 // Function to load components
-export async function loadComponents() {
+async function loadComponents() {
   const newComponents = new Collection<string, any>();
   const componentsPath = pathJoin(__dirname, "components");
   const componentFiles = readdirSync(componentsPath)
@@ -83,13 +79,12 @@ export async function loadComponents() {
 
   for (const file of componentFiles) {
     try {
-      const filePath = "file://" + file;
-      // Add cache-busting query parameter to ensure we get the latest version
-      const comp = (await import(filePath)).default;
+      const comp = require(file);
+
       if (comp && "prefix" in comp && "run" in comp) {
         newComponents.set(comp.prefix, comp);
       } else {
-        console.error(`The component file at ${filePath} is missing a required "prefix" or "run" property.`);
+        console.error(`The component file at ${file} is missing a required "prefix" or "run" property.`);
       }
     } catch (error) {
       console.error(`Error loading component file ${file}`, {
@@ -107,44 +102,33 @@ export async function loadComponents() {
 }
 
 // Function to load event listeners
-export async function loadEvents() {
-  // Remove all existing listeners
-  for (const [event, _] of eventListeners.entries()) {
-    client.removeAllListeners(event);
-  }
-
-  // Clear the event listeners map
-  eventListeners.clear();
-
+async function loadEvents() {
   const eventsPath = pathJoin(__dirname, "events");
+  console.log("Events path:", eventsPath);
   const eventsFolders = readdirSync(eventsPath, { encoding: "utf-8" });
+  console.log("Events folders found:", eventsFolders);
+  const clearedEventFolders = eventsFolders.filter((f) => Object.values(Events).includes(f as Events));
+  console.log("Cleared event folders:", clearedEventFolders);
 
   console.info("Loading events...");
 
-  for (const event of eventsFolders) {
-    if (!eventListeners.has(event)) {
-      eventListeners.set(event, []);
-    }
-
+  for (const event of clearedEventFolders) {
     let eventPath = pathJoin(eventsPath, event);
+    console.log("Event path:", eventPath);
     let eventFiles = readdirSync(eventPath)
       .filter((file) => file.endsWith(FILE_EXTENSION))
       .map((fn) => pathJoin(eventPath, fn));
+    console.log(`Event files for ${event}:`, eventFiles);
 
     for (let file of eventFiles) {
+      console.log(`Loading event file: ${file}`);
       try {
-        const filePath = "file://" + file;
-        // Add cache-busting query parameter to ensure we get the latest version
-        const func = (await import(filePath)).default;
+        const func = require(file).default;
+        console.log("typeof func:", typeof func);
         if (typeof func !== "function") continue;
 
-        // Create a wrapper function to use for both adding and removing the listener
-        const wrappedFunc = (...args: any[]) => func(...args);
-
-        // Add the listener to the client
-        client.on(event, wrappedFunc);
-
-        eventListeners.set(event, [...(eventListeners.get(event) || []), filePath]);
+        client.on(event, (...args) => func(...args));
+        console.log(`Added listener for event: ${event} (${func.name || "anonymous function"})`);
       } catch (error) {
         console.error(`Error loading event file ${file}`, {
           error,
@@ -152,26 +136,18 @@ export async function loadEvents() {
       }
     }
   }
-
-  return eventListeners;
 }
 
-// Setup interaction handlers
 function setupInteractionHandlers() {
-  // Remove existing interaction listeners
-  client.removeAllListeners("interactionCreate");
-
-  // Add the interaction handler
   client.on("interactionCreate", new InteractionHandler(client, commands, components).handler());
 }
 
 // Function to load all modules
-export async function loadAllModules() {
+async function loadAllModules() {
   await loadCommands();
   await loadComponents();
   await loadEvents();
   setupInteractionHandlers();
-  return { commands, components, eventListeners };
 }
 
 client.once("clientReady", async (_client) => {
@@ -203,9 +179,7 @@ client.once("clientReady", async (_client) => {
   const guildIds = config.guildIds;
   console.info(`[CONFIG] Found ${guildIds.length} guild(s) in configuration`);
 
-  const presentGuilds = await dbManager.query<{ guild_id: string }>("SELECT guild_id FROM guilds WHERE guild_id = ANY($1)", [
-    guildIds,
-  ]);
+  const presentGuilds = await dbManager.query("SELECT guild_id FROM guilds WHERE guild_id = ANY($1)", [guildIds]);
   const presentGuildIds = new Set(presentGuilds.rows.map((row) => row.guild_id));
   console.debug(`[DB] Found ${presentGuildIds.size} existing guild configuration(s) in database`);
 
@@ -228,9 +202,7 @@ client.once("clientReady", async (_client) => {
   console.debug(`[DB] Deleted ${deletedTruthSources.rowCount || 0} obsolete truth source(s) from database`);
 
   console.debug("[DB] Loading truth sources from database...");
-  const truthSources = await dbManager.query<{ guild_id: string; user_id: string }>(
-    "SELECT guild_id, user_id FROM truth_sources",
-  );
+  const truthSources = await dbManager.query("SELECT guild_id, user_id FROM truth_sources");
 
   truthSources.rows.forEach((row) => {
     config.addTruthSource(row.guild_id, row.user_id);
