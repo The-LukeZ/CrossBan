@@ -21,6 +21,7 @@ class InteractionHandler implements IInteractionHandler {
     this.#client = client;
     this.#commands = commands;
     this.#components = components;
+    console.log("InteractionHandler initialized.");
   }
 
   get client(): Client {
