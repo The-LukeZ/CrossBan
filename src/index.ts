@@ -205,6 +205,10 @@ client.once("clientReady", async (_client) => {
     }
   }
 
+  // Delete obsolete guilds and truth sources from db
+  const envGuilds = config.guildIds;
+  await dbManager.query("DELETE FROM guilds WHERE guild_id != ANY($1)", [envGuilds]);
+  await dbManager.query("DELETE FROM truth_sources WHERE guild_id != ANY($1)", [envGuilds]);
   const truthSources = await dbManager.query<{ guild_id: string; user_id: string }>(
     "SELECT guild_id, user_id FROM truth_sources",
   );
