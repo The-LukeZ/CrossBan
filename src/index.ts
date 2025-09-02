@@ -189,32 +189,59 @@ client.once("clientReady", async (_client) => {
 });
 
 (async function start() {
-  await loadAllModules();
-  await dbManager.initialize();
+  console.info("[APP] Starting application initialization...");
 
+  console.debug("[APP] Loading modules...");
+  await loadAllModules();
+  console.info("[APP] All modules loaded successfully");
+
+  console.debug("[DB] Initializing database manager...");
+  await dbManager.initialize();
+  console.info("[DB] Database manager initialized");
+
+  console.debug("[CONFIG] Checking guild configurations...");
   const guildIds = config.guildIds;
+  console.info(`[CONFIG] Found ${guildIds.length} guild(s) in configuration`);
+
   const presentGuilds = await dbManager.query<{ guild_id: string }>("SELECT guild_id FROM guilds WHERE guild_id = ANY($1)", [
     guildIds,
   ]);
   const presentGuildIds = new Set(presentGuilds.rows.map((row) => row.guild_id));
+  console.debug(`[DB] Found ${presentGuildIds.size} existing guild configuration(s) in database`);
 
   for (const guildId of guildIds) {
     if (!presentGuildIds.has(guildId)) {
-      await dbManager.setGuildConfig({ guildId });
-      console.log(`Created database config for guild ${guildId}`);
+      console.info(`[DB] Creating database configuration for guild ${guildId}...`);
+      const result = await dbManager.setGuildConfig({ guildId });
+      console.info(`[DB] Successfully created database config for guild ${guildId}`, { result });
     }
   }
 
   // Delete obsolete guilds and truth sources from db
+  console.debug("[DB] Cleaning up obsolete database entries...");
   const envGuilds = config.guildIds;
-  await dbManager.query("DELETE FROM guilds WHERE guild_id != ANY($1)", [envGuilds]);
-  await dbManager.query("DELETE FROM truth_sources WHERE guild_id != ANY($1)", [envGuilds]);
+
+  const deletedGuilds = await dbManager.query("DELETE FROM guilds WHERE guild_id != ALL($1)", [envGuilds]);
+  console.debug(`[DB] Deleted ${deletedGuilds.rowCount || 0} obsolete guild(s) from database`);
+
+  const deletedTruthSources = await dbManager.query("DELETE FROM truth_sources WHERE guild_id != ALL($1)", [envGuilds]);
+  console.debug(`[DB] Deleted ${deletedTruthSources.rowCount || 0} obsolete truth source(s) from database`);
+
+  console.debug("[DB] Loading truth sources from database...");
   const truthSources = await dbManager.query<{ guild_id: string; user_id: string }>(
     "SELECT guild_id, user_id FROM truth_sources",
   );
+
   truthSources.rows.forEach((row) => {
     config.addTruthSource(row.guild_id, row.user_id);
   });
+  console.info(`[DB] Loaded ${truthSources.rows.length} truth source(s) from database`);
+
+  console.info("[APP] Logging in to Discord...");
   client.login(config.botToken);
+
+  console.info("[APP] Enabling ban sync manager...");
   getBanSyncManager().enable();
+
+  console.info("[APP] Application startup completed successfully");
 })();
