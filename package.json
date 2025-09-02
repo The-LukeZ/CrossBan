@@ -4,7 +4,7 @@
   "description": "A Discord bot for synchronizing bans across multiple communities.",
   "main": "./dist/index.js",
   "scripts": {
-    "dev": "npx tsx src/index.ts",
+    "dev": "npx tsx --env-file=.env.local src/index.ts",
     "build": "npx tsc",
     "start": "node dist/index.js",
     "docker:dev": "docker compose --env-file .env.local -f 'docker-compose.dev.yml' up -d",
@@ -29,13 +29,12 @@
   "packageManager": "pnpm@10.15.0",
   "type": "commonjs",
   "dependencies": {
+    "@types/pg": "^8.15.5",
     "discord.js": "^14.22.1",
-    "djs-command-helper": "^4.2.2",
     "dotenv": "^17.2.1",
     "pg": "^8.16.3",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2",
-    "@types/pg": "^8.15.5"
+    "typescript": "^5.9.2"
   },
   "devDependencies": {
     "@types/node": "^24.3.0"
