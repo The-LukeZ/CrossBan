@@ -1,6 +1,7 @@
 import { AuditLogEvent, type Guild, type GuildAuditLogsEntry } from "discord.js";
 import { config } from "../../config";
 import { getBanSyncManager } from "../../utils/banSyncManager";
+import { sendLog } from "../../utils/logger";
 
 function shouldIgnore(entry: GuildAuditLogsEntry, guildId: string) {
   if (entry.action !== AuditLogEvent.MemberBanAdd && entry.action !== AuditLogEvent.MemberBanRemove) return true;
@@ -10,12 +11,16 @@ function shouldIgnore(entry: GuildAuditLogsEntry, guildId: string) {
   return false;
 }
 
-export default async function (entry: GuildAuditLogsEntry, guild: Guild) {
+export default async function banEventHandler(entry: GuildAuditLogsEntry, guild: Guild) {
+  console.log("Incoming audit log entry create event!");
+  sendLog(["Incoming event", entry.toJSON(), "Guild ID: " + guild.id]);
   if (shouldIgnore(entry, guild.id)) return;
+  sendLog(`Event not ignored, processing...`);
 
   const { targetId, executorId, action, reason } = entry;
 
   if (action === AuditLogEvent.MemberBanAdd) {
+    sendLog(`Processing ban event...`);
     await getBanSyncManager().handleBan({
       userId: targetId!,
       sourceGuild: guild.id,
@@ -23,6 +28,7 @@ export default async function (entry: GuildAuditLogsEntry, guild: Guild) {
       reason: reason ?? "Unknown Reason",
     });
   } else if (action === AuditLogEvent.MemberBanRemove) {
+    sendLog(`Processing unban event...`);
     await getBanSyncManager().removeBan({ userId: targetId!, sourceGuild: guild, executorId: executorId! });
   }
 }
