@@ -1,6 +1,6 @@
 import { ButtonInteraction, TextDisplayBuilder, UserSelectMenuInteraction } from "discord.js";
 import { dbManager } from "../../database/manager";
-import { buildSourceOfTruthMessage, ComponentsV2Flags, MySet } from "../../utils/main";
+import { buildSourceOfTruthMessage, ComponentsV2Flags, EphemeralV2Flags, MySet } from "../../utils/main";
 import { config } from "../../config";
 
 export async function truthSourcesHandler(
@@ -42,4 +42,15 @@ export async function truthSourcesHandler(
     components: buildSourceOfTruthMessage(newSources.toArray()),
     flags: ComponentsV2Flags,
   });
+
+  if (ctx.values.some((id) => id === ctx.client.user.id || config.BSID === id)) {
+    const userIds = ctx.values.filter((id) => id === ctx.client.user.id || config.BSID === id);
+    await ctx.followUp({
+      flags: EphemeralV2Flags,
+      components: [new TextDisplayBuilder().setContent(`You can't add <@${userIds.join(", ")}>!`)],
+      allowedMentions: {
+        parse: [],
+      },
+    });
+  }
 }
