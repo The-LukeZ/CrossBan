@@ -50,7 +50,7 @@ export function buildSourceOfTruthMessage(
   action?: "add" | "remove",
 ): JSONEncodable<APIMessageTopLevelComponent>[] {
   const container = new ContainerBuilder().addTextDisplayComponents(
-    (t) => t.setContent("### Sources of Truth"),
+    (t) => t.setContent("### Sources of Truth\n-# Only bans and unbans from sources of truth are getting synced."),
     (t) => t.setContent(sources.map((s) => `- <@${s}>`).join("\n") || "_No sources of truth configured yet._"),
   );
   const rows: JSONEncodable<APIMessageTopLevelComponent>[] = [
