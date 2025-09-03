@@ -160,6 +160,7 @@ class BanSyncManager {
       return true;
     } catch (error) {
       console.error(`Failed to send unban log to channel ${guildConfig.loggingChannelId}:`, error);
+      sendLog(["Failed to send unban log to server " + guild.id, String(error)]);
     }
 
     return false;
