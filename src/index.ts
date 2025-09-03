@@ -1,4 +1,4 @@
-import { Client, Collection, Events, GatewayIntentBits, Options } from "discord.js";
+import { ActivityType, Client, Collection, Events, GatewayIntentBits, Options } from "discord.js";
 import { config } from "./config.js";
 import { dbManager } from "./database/manager.js";
 import InteractionHandler from "./utils/interactionHandler.js";
@@ -161,6 +161,13 @@ client.once("clientReady", async (_client) => {
     appId: _client.application.id,
     appToken: _client.token,
     fileExtension: FILE_EXTENSION,
+  });
+
+  const cfgs = await dbManager.getGuildConfigsForAutoban();
+
+  _client.user.setActivity({
+    name: `${cfgs.length} guild${cfgs.length === 1 ? "" : "s"}`,
+    type: ActivityType.Watching,
   });
 });
 
