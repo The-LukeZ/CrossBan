@@ -135,14 +135,8 @@ export class UnbanMessageBuilder {
         .setCustomId("unban")
         .setPlaceholder("Take Action!")
         .addOptions(
-          new StringSelectMenuOptionBuilder()
-            .setLabel("Unban locally")
-            .setValue("f487c44975644e34a3ba771d45b8cfef")
-            .setEmoji({ name: "📍" }),
-          new StringSelectMenuOptionBuilder()
-            .setLabel("Ignore")
-            .setValue("4af3e581c2cb4823e351cba5cb6f9f21")
-            .setEmoji({ name: "❎" }),
+          new StringSelectMenuOptionBuilder().setLabel("Unban locally").setValue("unban").setEmoji({ name: "📍" }),
+          new StringSelectMenuOptionBuilder().setLabel("Ignore").setValue("ignore").setEmoji({ name: "❎" }),
         ),
     );
   }
