@@ -5,8 +5,7 @@ CREATE TABLE
         source_guild VARCHAR(255) NOT NULL,
         source_user VARCHAR(255) NOT NULL,
         reason TEXT,
-        created_at TIMESTAMP DEFAULT NOW (),
-        revoked BOOLEAN DEFAULT false
+        created_at TIMESTAMP DEFAULT NOW ()
     );
 
 -- Ban table only has the synced bans in it. The ban events are in the other table above.
@@ -18,6 +17,7 @@ CREATE TABLE
         is_banned BOOLEAN DEFAULT FALSE,
         ban_event_id INTEGER REFERENCES ban_events (id), -- Links to the originating event
         applied_at TIMESTAMP DEFAULT NOW (),
+        is_source BOOLEAN DEFAULT FALSE,
         last_updated TIMESTAMP DEFAULT NOW (),
         UNIQUE (user_id, guild_id, is_banned) -- One state record per user per guild because a user can only be banned once per guild (if they are banned)
     );

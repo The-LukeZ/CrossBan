@@ -36,7 +36,6 @@ export async function run(ctx: ChatInputCommandInteraction<"cached">) {
       createdAt: new Date(),
       id: 0,
       reason: "Test ban",
-      revoked: false,
       sourceGuild: ctx.guildId,
       sourceUser: "1022544757739761676",
       userId: ctx.user.id,

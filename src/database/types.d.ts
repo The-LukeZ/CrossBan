@@ -18,15 +18,13 @@ export type BanEvent = {
   reason: string | null;
   /** Timestamp when the ban event was created. */
   createdAt: Date;
-  /** Whether the ban has been revoked (lifted). */
-  revoked: boolean;
 };
 
 /**
  * Used for inserting a new ban event.
- * Omits 'id', 'createdAt', and 'revoked', but allows partial 'createdAt' and 'revoked'.
+ * Omits 'id', 'createdAt', but allows partial 'createdAt'.
  */
-export type BanEventInsert = Omit<BanEvent, "id" | "createdAt" | "revoked"> & Partial<Pick<BanEvent, "createdAt" | "revoked">>;
+export type BanEventInsert = Omit<BanEvent, "id" | "createdAt"> & Partial<Pick<BanEvent, "createdAt">>;
 
 /**
  * Represents a guild ban record (synced bans).
@@ -44,6 +42,8 @@ export type GuildBan = {
   banEventId: number | null;
   /** Timestamp when the ban was applied. */
   appliedAt: Date;
+  /** Whether this ban entry is the one from the source guild. */
+  isSource: boolean;
   /** Timestamp when the record was last updated. */
   lastUpdated: Date;
 };
@@ -52,8 +52,8 @@ export type GuildBan = {
  * Used for inserting a new guild ban.
  * Omits 'id', 'appliedAt', and 'lastUpdated', but allows partial for those fields.
  */
-export type GuildBanInsert = Omit<GuildBan, "id" | "appliedAt" | "lastUpdated"> &
-  Partial<Pick<GuildBan, "appliedAt" | "lastUpdated">>;
+export type GuildBanInsert = Omit<GuildBan, "id" | "appliedAt" | "lastUpdated" | "isSource"> &
+  Partial<Pick<GuildBan, "appliedAt" | "lastUpdated" | "isSource">>;
 
 /**
  * Represents a source of truth for bans in a guild.

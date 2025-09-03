@@ -31,7 +31,15 @@ class BanSyncManager {
   async handleBan(data: BanEventInsert): Promise<void> {
     if (!this.enabled) return;
 
-    const banEvent = await dbManager.addBan(data);
+    const banEvent = await dbManager.addBanEvent(data);
+    await dbManager.createGuildBan({
+      banEventId: banEvent.id,
+      guildId: data.sourceGuild,
+      isBanned: true,
+      userId: data.userId,
+      isSource: true,
+      appliedAt: banEvent.createdAt,
+    });
     sendLog(["Ban event created", banEvent, "Syncing..."]);
     await this.syncBanToGuilds(banEvent, data.sourceGuild);
   }
@@ -96,13 +104,21 @@ class BanSyncManager {
 
   private async syncUnbanToGuilds(ban: BanEvent, sourceGuild: Guild, executorId: string): Promise<void> {
     // Get all guild configs where unbanning should occur, excluding the source guild
-    const guildConfigs = await dbManager.getAllGuildConfigs();
-    const targetGuilds = guildConfigs.filter((config) => config.guildId !== sourceGuild.id && config.enabled);
-    sendLog(["Found target guilds for unban sync:", ...targetGuilds.map((config) => config.guildId)]);
+    const guildCfgs = await dbManager.getAllGuildConfigs();
+    const targetCfgs = guildCfgs.filter((cfg) => cfg.guildId !== sourceGuild.id);
+    sendLog(["Found target guilds for unban sync:", ...targetCfgs.map((config) => config.guildId)]);
 
     // Implement unban logic here
-    for (const cfg of targetGuilds) {
+    for (const cfg of targetCfgs) {
       const logs = [`Unbanning user ${ban.userId} in guild ${cfg.guildId}`];
+
+      const isBanned = await dbManager.isUserBannedInGuild(ban.userId, cfg.guildId);
+      if (!isBanned) {
+        logs.push(`User ${ban.userId} is not banned in guild ${cfg.guildId}. Skipping.`);
+        sendLog(logs);
+        continue;
+      }
+
       if (cfg.unbanMode === "AUTO") {
         logs.push(`Auto-unban mode: Proceeding to unban user in guild ${cfg.guildId}`);
         await this.reallyUnbanUserFromGuild(ban.userId, cfg.guildId);
@@ -178,7 +194,7 @@ class BanSyncManager {
 
     sendLog(`Removing the ban for ${data.userId} in ${data.sourceGuild.name}`);
 
-    await dbManager.removeBan(data.userId); // doesnt actually remove the ban, but marks it as revoked
+    await dbManager.removeBan(data.userId, data.sourceGuild.id); // doesnt actually remove the ban, but marks it as "is not banned"
     await this.syncUnbanToGuilds(ban, data.sourceGuild, data.executorId);
     sendLog(`Finished processing unban sync for ${data.userId}`);
   }

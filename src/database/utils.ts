@@ -8,7 +8,6 @@ export function dbBanEventToObject(row: any): BanEvent {
     sourceUser: row.source_user,
     reason: row.reason,
     createdAt: new Date(row.created_at),
-    revoked: !!row.revoked,
   };
 }
 
@@ -21,6 +20,7 @@ export function dbGuildBanToObject(row: any): GuildBan {
     banEventId: row.ban_event_id ? Number(row.ban_event_id) : null,
     appliedAt: new Date(row.applied_at),
     lastUpdated: new Date(row.last_updated),
+    isSource: !!row.is_source,
   };
 }
 

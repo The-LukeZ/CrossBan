@@ -127,7 +127,7 @@ export class DBManager {
     return dbGuildConfigToObject(result.rows[0]);
   }
 
-  async addBan(record: BanEventInsert): Promise<BanEvent> {
+  async addBanEvent(record: BanEventInsert): Promise<BanEvent> {
     const query = `
       INSERT INTO ban_events (user_id, source_guild, source_user, reason)
       VALUES ($1, $2, $3, $4)
@@ -136,6 +136,7 @@ export class DBManager {
     const values = [record.userId, record.sourceGuild, record.sourceUser, record.reason];
 
     const res = await this.query(query, values);
+
     return dbBanEventToObject(res.rows[0]);
   }
 
@@ -150,29 +151,36 @@ export class DBManager {
     return dbBanEventToObject(result.rows[0]);
   }
 
-  async getBan(userId: string, onlyActive = true): Promise<BanEvent | null> {
-    const result = await this.query("SELECT * FROM ban_events WHERE user_id = $1 AND revoked = $2", [userId, !onlyActive]);
+  async getBan(userId: string): Promise<BanEvent | null> {
+    const result = await this.query("SELECT * FROM ban_events WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1", [userId]);
 
     if (result.rows.length === 0) return null;
 
     return dbBanEventToObject(result.rows[0]);
   }
 
-  async removeBan(userId: string): Promise<void> {
-    await this.query("UPDATE ban_events SET revoked = TRUE WHERE user_id = $1 AND revoked = FALSE", [userId]);
+  async removeBan(userId: string, guildId: string): Promise<void> {
+    await this.query("UPDATE guild_bans SET is_banned = FALSE WHERE user_id = $1 AND guild_id = $2", [userId, guildId]);
   }
 
   async createGuildBan(data: GuildBanInsert): Promise<GuildBan> {
     const query = `
-      INSERT INTO guild_bans (user_id, guild_id, is_banned, ban_event_id)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO guild_bans (user_id, guild_id, is_banned, ban_event_id, is_source, applied_at)
+      VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (user_id, guild_id, is_banned) 
       DO UPDATE SET 
         ban_event_id = EXCLUDED.ban_event_id,
         last_updated = NOW()
       RETURNING *
     `;
-    const values = [data.userId, data.guildId, data.isBanned ?? true, data.banEventId ?? null];
+    const values = [
+      data.userId,
+      data.guildId,
+      data.isBanned ?? true,
+      data.banEventId ?? null,
+      data.isSource ?? false,
+      data.appliedAt?.toISOString() ?? undefined, // should set the default when undefined
+    ];
 
     const res = await this.query(query, values);
     return dbGuildBanToObject(res.rows[0]);
