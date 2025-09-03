@@ -13,7 +13,6 @@ function shouldIgnore(entry: GuildAuditLogsEntry, guildId: string) {
 
 export default async function banEventHandler(entry: GuildAuditLogsEntry, guild: Guild) {
   console.log("Incoming audit log entry create event!");
-  sendLog(["Incoming event", entry.toJSON(), "Guild ID: " + guild.id]);
   if (shouldIgnore(entry, guild.id)) return;
   sendLog(`Event not ignored, processing...`);
 
