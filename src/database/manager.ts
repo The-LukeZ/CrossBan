@@ -207,7 +207,7 @@ export class DBManager {
     return result.rows.map(dbGuildBanToObject);
   }
 
-  async getBanEventWithGuildBans(banEventId: bigint): Promise<{ banEvent: BanEvent; guildBans: GuildBan[] } | null> {
+  async getBanEventWithGuildBans(banEventId: bigint): Promise<{ event: BanEvent; bans: GuildBan[] } | null> {
     const banEventResult = await this.query("SELECT * FROM ban_events WHERE id = $1", [banEventId]);
 
     if (banEventResult.rows.length === 0) return null;
@@ -215,8 +215,8 @@ export class DBManager {
     const guildBansResult = await this.query("SELECT * FROM guild_bans WHERE ban_event_id = $1", [banEventId]);
 
     return {
-      banEvent: dbBanEventToObject(banEventResult.rows[0]),
-      guildBans: guildBansResult.rows.map(dbGuildBanToObject),
+      event: dbBanEventToObject(banEventResult.rows[0]),
+      bans: guildBansResult.rows.map(dbGuildBanToObject),
     };
   }
 
