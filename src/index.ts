@@ -8,6 +8,7 @@ import { join as pathJoin } from "path";
 import { getBanSyncManager, initBanSyncManager } from "./utils/banSyncManager.js";
 import { initUnbanLogger } from "./utils/unbanLogger.js";
 import { deployCommands } from "./utils/commandHelper.js";
+import { setLogging } from "./utils/logger.js";
 
 const client = new Client({
   intents: [
@@ -221,6 +222,10 @@ client.once("clientReady", async (_client) => {
 
   console.info("[APP] Enabling ban sync manager...");
   getBanSyncManager().enable();
+
+  if (config.NODE_ENV !== "production") {
+    setLogging(true);
+  }
 
   console.info("[APP] Application startup completed successfully");
 })();

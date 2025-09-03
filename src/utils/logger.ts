@@ -1,14 +1,13 @@
 import { ContainerBuilder, WebhookClient } from "discord.js";
 import { ComponentsV2Flags } from "./main";
 
-const wh =
-  process.env.LOGGING_WEBHOOK && process.env.NODE_ENV !== "production"
-    ? new WebhookClient({ url: process.env.LOGGING_WEBHOOK })
-    : null;
+const wh = process.env.LOGGING_WEBHOOK ? new WebhookClient({ url: process.env.LOGGING_WEBHOOK }) : null;
 
 // Queue system for sequential logging
 const logQueue: any[] = [];
 let isProcessing = false;
+
+let loggingEnabled = false;
 
 async function processLogQueue(): Promise<void> {
   if (isProcessing || logQueue.length === 0) return;
@@ -24,8 +23,9 @@ async function processLogQueue(): Promise<void> {
 }
 
 async function sendLogInternal(data: any): Promise<void> {
+  if (!loggingEnabled) return;
   if (!wh) {
-    if (process.env.NODE_ENV !== "production") console.warn("No logging webhook configured!");
+    console.warn("No logging webhook configured!");
     return;
   }
 
@@ -53,4 +53,8 @@ async function sendLogInternal(data: any): Promise<void> {
 export async function sendLog(data: any): Promise<void> {
   logQueue.push(data);
   processLogQueue();
+}
+
+export function setLogging(v: boolean) {
+  loggingEnabled = v;
 }
