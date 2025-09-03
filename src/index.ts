@@ -166,7 +166,7 @@ client.once("clientReady", async (_client) => {
   const cfgs = await dbManager.getGuildConfigsForAutoban();
 
   _client.user.setActivity({
-    name: `${cfgs.length} guild${cfgs.length === 1 ? "" : "s"}`,
+    name: `${cfgs.length} server${cfgs.length === 1 ? "" : "s"}`,
     type: ActivityType.Watching,
   });
 });
