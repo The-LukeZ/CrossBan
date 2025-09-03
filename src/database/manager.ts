@@ -191,7 +191,10 @@ export class DBManager {
   }
 
   async removeGuildBan(userId: string, guildId: string): Promise<void> {
-    await this.query("UPDATE guild_bans SET is_banned = FALSE, last_updated = NOW() WHERE user_id = $1 AND guild_id = $2", [userId, guildId]);
+    await this.query("UPDATE guild_bans SET is_banned = FALSE, last_updated = NOW() WHERE user_id = $1 AND guild_id = $2", [
+      userId,
+      guildId,
+    ]);
   }
 
   async getGuildBansForUser(userId: string): Promise<GuildBan[]> {
@@ -206,19 +209,22 @@ export class DBManager {
 
   async getBanEventWithGuildBans(banEventId: bigint): Promise<{ banEvent: BanEvent; guildBans: GuildBan[] } | null> {
     const banEventResult = await this.query("SELECT * FROM ban_events WHERE id = $1", [banEventId]);
-    
+
     if (banEventResult.rows.length === 0) return null;
 
     const guildBansResult = await this.query("SELECT * FROM guild_bans WHERE ban_event_id = $1", [banEventId]);
 
     return {
       banEvent: dbBanEventToObject(banEventResult.rows[0]),
-      guildBans: guildBansResult.rows.map(dbGuildBanToObject)
+      guildBans: guildBansResult.rows.map(dbGuildBanToObject),
     };
   }
 
   async isUserBannedInGuild(userId: string, guildId: string): Promise<boolean> {
-    const result = await this.query("SELECT 1 FROM guild_bans WHERE user_id = $1 AND guild_id = $2 AND is_banned = TRUE", [userId, guildId]);
+    const result = await this.query("SELECT 1 FROM guild_bans WHERE user_id = $1 AND guild_id = $2 AND is_banned = TRUE", [
+      userId,
+      guildId,
+    ]);
     return result.rows.length > 0;
   }
 
