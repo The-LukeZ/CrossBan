@@ -1,19 +1,17 @@
-FROM node:22 AS base
+FROM node:22
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm install -g pnpm
 
-# Development stage
-FROM base AS development
-ENV NODE_ENV=development
+# Install all dependencies
 RUN pnpm install
-COPY . .
-CMD ["pnpm", "run", "dev"]
 
-# Production stage
-FROM base AS production
-ENV NODE_ENV=production
-RUN pnpm install --prod
+# Copy source code
 COPY . .
+
+# Build for production
 RUN pnpm build
+
+# Default to production, but can be overridden
+ENV NODE_ENV=production
 CMD ["node", "dist/index.js"]

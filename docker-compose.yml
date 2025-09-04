@@ -1,8 +1,8 @@
 services:
   postgres:
     image: postgres:17
-    container_name: database_dev
-    env_file: .env.local
+    container_name: database
+    env_file: .env
     environment:
       POSTGRES_USER: $POSTGRES_USER
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
@@ -10,26 +10,24 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   bot:
     build:
       context: .
       target: development
-    container_name: bot_dev
+    container_name: dc-bot
     depends_on:
       - postgres
-    env_file: .env.local
+    env_file: .env
     environment:
-      NODE_ENV: development
       DATABASE_URL: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB"
-      BOT_TOKEN: $BOT_TOKEN
     volumes:
       - .:/app
       - /app/node_modules
     restart: unless-stopped
 
 volumes:
-  postgres_dev_data:
+  postgres_data:
     driver: local
