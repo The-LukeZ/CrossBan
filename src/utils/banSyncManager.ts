@@ -166,12 +166,16 @@ class BanSyncManager {
 
     try {
       await getUnbanLogger().sendLog({
-        ban: ban,
-        executorId: executorId,
-        user: user,
-        guildName: guild.name,
         loggingChannelId: guildConfig.loggingChannelId,
         type: UnbanMessageType.REVIEW,
+        banExecutorId: ban.sourceUser,
+        user: user,
+        banReason: ban.reason ?? "No reason provided",
+        banTimestamp: ~~(ban.createdAt.getTime() / 1000),
+        guildName: guild.name,
+        unbanExecutorId: executorId,
+        unbanTimestamp: ~~(Date.now() / 1000),
+        guildIconUrl: guild.iconURL() ?? undefined,
       });
       return true;
     } catch (error) {
@@ -194,7 +198,7 @@ class BanSyncManager {
 
     sendLog(`Removing the ban for ${data.userId} in ${data.sourceGuild.name}`);
 
-    await dbManager.removeBan(data.userId, data.sourceGuild.id); // doesnt actually remove the ban, but marks it as "is not banned"
+    await dbManager.removeGuildBan(data.userId, data.sourceGuild.id);
     await this.syncUnbanToGuilds(ban, data.sourceGuild, data.executorId);
     sendLog(`Finished processing unban sync for ${data.userId}`);
   }
