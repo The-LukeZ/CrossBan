@@ -16,7 +16,7 @@ services:
   bot:
     build:
       context: .
-      target: development
+      dockerfile: Dockerfile
     container_name: dc-bot
     depends_on:
       - postgres
