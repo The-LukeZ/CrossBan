@@ -159,18 +159,10 @@ export class DBManager {
     return dbBanEventToObject(result.rows[0]);
   }
 
-  async removeBan(userId: string, guildId: string): Promise<void> {
-    await this.query("UPDATE guild_bans SET is_banned = FALSE WHERE user_id = $1 AND guild_id = $2", [userId, guildId]);
-  }
-
   async createGuildBan(data: GuildBanInsert): Promise<GuildBan> {
     const query = `
       INSERT INTO guild_bans (user_id, guild_id, is_banned, ban_event_id, is_source, applied_at)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (user_id, guild_id, is_banned) 
-      DO UPDATE SET 
-        ban_event_id = EXCLUDED.ban_event_id,
-        last_updated = NOW()
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
     const values = [
@@ -198,6 +190,10 @@ export class DBManager {
     return dbGuildBanToObject(result.rows[0]);
   }
 
+  /**
+   * - Removes a ban for a specific user in a specific guild by setting their ban status to false.
+   * - Updates the `last_updated` timestamp to the current time.
+   */
   async removeGuildBan(userId: string, guildId: string): Promise<void> {
     await this.query("UPDATE guild_bans SET is_banned = FALSE, last_updated = NOW() WHERE user_id = $1 AND guild_id = $2", [
       userId,
