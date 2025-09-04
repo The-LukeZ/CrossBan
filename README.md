@@ -1,4 +1,4 @@
-# CrossBan
+# CrossBan - Public BETA
 
 A Discord bot for ban-synchronization across multiple servers.
 
@@ -22,6 +22,6 @@ Head over to the [Wiki](https://github.com/The-LukeZ/CrossBan/wiki) to get start
 
 ## License
 
-This project is licensed under the **PolyForm Noncommercial License 1.0.0** - <https://polyformproject.org/licenses/noncommercial/1.0.0/>
+This project is licensed under the **PolyForm Noncommercial License 1.0.0** - https://polyformproject.org/licenses/noncommercial/1.0.0/
 
 This license allows you to use, modify, and distribute the code for noncommercial purposes, but you may not use it for commercial purposes or to make money.
