@@ -23,15 +23,42 @@ import {
   type MessageActionRowComponentBuilder,
 } from "discord.js";
 
-export interface UnbanDetails {
+export interface UnbanDetails<T extends UnbanMessageType = UnbanMessageType> {
   /**
    * The unbanned user.
    */
-  user: User;
+  user: User | { id: string; defaultAvatarURL: string; avatarURL?: () => string | null };
+  /**
+   * The guild name where the unban occurred.
+   */
   guildName: string;
+  /**
+   * The guild icon URL, if available.
+   */
   guildIconUrl?: string;
-  timestamp: number;
-  executorId: string;
+  /**
+   * The unix timestamp of when the unban occurred.
+   */
+  unbanTimestamp: number;
+  /**
+   * The unix timestamp of when the ban occurred.
+   */
+  banTimestamp: number;
+  /**
+   * The ID of the executor who performed the initial ban.
+   */
+  banExecutorId: string;
+  /**
+   * The ID of the executor who performed the initial unban.
+   */
+  unbanExecutorId: string;
+  /**
+   * The ID of the executor who performed the unban action (if applicable).
+   */
+  actionExecutorId?: T extends UnbanMessageType.REVIEW ? never : string;
+  /**
+   * The reason for the initial ban.
+   */
   banReason: string;
 }
 
@@ -41,43 +68,45 @@ export enum UnbanMessageType {
   IGNORED = "ignored",
 }
 
-export class UnbanMessageBuilder {
+export class UnbanMessageBuilder<T extends UnbanMessageType> {
   private static readonly COLORS = {
     [UnbanMessageType.REVIEW]: 41983,
     [UnbanMessageType.SUCCESS]: 3331645,
     [UnbanMessageType.IGNORED]: 6429210,
   };
 
-  private static actionText(type: Exclude<UnbanMessageType, UnbanMessageType.REVIEW>, executorId: string) {
+  constructor() {}
+
+  private static actionText(type: Exclude<UnbanMessageType, UnbanMessageType.REVIEW>, userId: string) {
     const texts = {
       [UnbanMessageType.SUCCESS]: "🔨 Unbanned",
       [UnbanMessageType.IGNORED]: "❌ Ignored",
     };
-    return `### Action Taken\n- **Action:** ${texts[type]}\n- **Executor:** <@${executorId}>`;
+    return `### Action Taken\n- **Action:** ${texts[type]}\n- **Action Executor:** <@${userId}>`;
   }
 
-  public static build(details: UnbanDetails, type: UnbanMessageType): APIMessageTopLevelComponent[] {
+  public build(details: UnbanDetails<T>, type: T): APIMessageTopLevelComponent[] {
     const components: JSONEncodable<APIMessageTopLevelComponent>[] = [this.buildMainContainer(details, type)];
 
     if (type === UnbanMessageType.REVIEW) {
-      components.push(this.buildActionRow());
+      components.push(this.buildActionRow(details.user.id));
     }
 
     return components.map((component) => component.toJSON());
   }
 
-  private static buildMainContainer(details: UnbanDetails, type: UnbanMessageType) {
+  private buildMainContainer(details: UnbanDetails<T>, type: T) {
     const container = new ContainerBuilder()
-      .setAccentColor(this.COLORS[type])
+      .setAccentColor(UnbanMessageBuilder.COLORS[type])
       .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(`### Entbannung von <@${details.user.id}>\n-# **User ID:** \`${details.user.id}\``),
+        new TextDisplayBuilder().setContent(`### Unban of <@${details.user.id}>\n-# \`${details.user.id}\``),
       )
       .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
 
     if (details.guildIconUrl) {
-      container.addSectionComponents(this.buildUnbanDetailsSection(details) as SectionBuilder);
+      container.addSectionComponents(this.buildUnbanDetailsSection(details, details.guildIconUrl));
     } else {
-      container.addTextDisplayComponents(...(this.buildUnbanDetailsSection(details) as TextDisplayBuilder[]));
+      container.addTextDisplayComponents(...this.buildUnbanDetailsSection(details));
     }
 
     container
@@ -88,51 +117,51 @@ export class UnbanMessageBuilder {
       container
         .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Large).setDivider(true))
         .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(this.actionText(type, details.executorId) + `<@${details.executorId}>`),
+          new TextDisplayBuilder().setContent(
+            UnbanMessageBuilder.actionText(type as Exclude<UnbanMessageType, UnbanMessageType.REVIEW>, details.actionExecutorId!),
+          ),
         );
     }
 
     return container;
   }
 
-  private static buildUnbanDetailsSection(details: UnbanDetails): SectionBuilder | TextDisplayBuilder[] {
-    if (details.guildIconUrl) {
+  private buildUnbanDetailsSection(details: UnbanDetails<T>): TextDisplayBuilder[];
+  private buildUnbanDetailsSection(details: UnbanDetails<T>, guildIconUrl: string): SectionBuilder;
+  private buildUnbanDetailsSection(details: UnbanDetails<T>, guildIconUrl?: string) {
+    const unbanDetailsTexts = [
+      new TextDisplayBuilder().setContent("**Initial Unban Details**"),
+      new TextDisplayBuilder().setContent(
+        `- **Servername:** ${details.guildName}\n- **Timestamp:** <t:${details.unbanTimestamp}:f>\n- **Executor:** <@${details.unbanExecutorId}>`,
+      ),
+    ];
+    if (guildIconUrl) {
       return new SectionBuilder()
-        .setThumbnailAccessory(new ThumbnailBuilder().setURL(details.guildIconUrl))
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent("**Unban Details**"),
-          new TextDisplayBuilder().setContent(
-            `- **Servername:** ${details.guildName}\n- **Timestamp:** <t:${details.timestamp}:f>\n- **Executor:** <@${details.executorId}>`,
-          ),
-        );
+        .setThumbnailAccessory(new ThumbnailBuilder().setURL(guildIconUrl))
+        .addTextDisplayComponents(...unbanDetailsTexts);
     } else {
-      return [
-        new TextDisplayBuilder().setContent("**Unban Details**"),
-        new TextDisplayBuilder().setContent(
-          `- **Servername:** ${details.guildName}\n- **Timestamp:** <t:${details.timestamp}:f>\n- **Executor:** <@${details.executorId}>`,
-        ),
-      ];
+      return unbanDetailsTexts;
     }
   }
 
-  private static buildBanSummarySection(details: UnbanDetails) {
+  private buildBanSummarySection(details: UnbanDetails<T>) {
     return new SectionBuilder()
-      .setThumbnailAccessory(new ThumbnailBuilder().setURL(details.user.avatarURL() ?? details.user.defaultAvatarURL))
+      .setThumbnailAccessory(new ThumbnailBuilder().setURL(details.user.avatarURL?.() ?? details.user.defaultAvatarURL))
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent("**Ban Summary**"),
         new TextDisplayBuilder().setContent(
           `- **Servername:** ${details.guildName}\n` +
-            `- **Timestamp:** <t:${details.timestamp}:f>\n` +
-            `- **Executor:** <@${details.executorId}>\n` +
+            `- **Timestamp:** <t:${details.banTimestamp}:f>\n` +
+            `- **Executor:** <@${details.banExecutorId}>\n` +
             `- **Reason:**\n  ${details.banReason}`,
         ),
       );
   }
 
-  private static buildActionRow() {
+  private buildActionRow(userId: string) {
     return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
       new StringSelectMenuBuilder()
-        .setCustomId("unban")
+        .setCustomId("unban?" + userId)
         .setPlaceholder("Take Action!")
         .addOptions(
           new StringSelectMenuOptionBuilder().setLabel("Unban locally").setValue("unban").setEmoji({ name: "📍" }),
@@ -142,17 +171,9 @@ export class UnbanMessageBuilder {
   }
 }
 
-type SendLogArgs = {
+type SendLogArgs<T extends UnbanMessageType = UnbanMessageType> = UnbanDetails<T> & {
   loggingChannelId: string;
-  ban: BanEvent;
-  executorId: string;
-  guildName: string;
-  guildIconUrl?: string;
-  /**
-   * The unbanned user.
-   */
-  user: User;
-  type: UnbanMessageType;
+  type: T;
 };
 
 export class UnbanLogger {
@@ -179,36 +200,36 @@ export class UnbanLogger {
     this._client = client;
   }
 
-  private buildLogMessage(details: UnbanDetails, type: UnbanMessageType): RESTPostAPIChannelMessageJSONBody {
+  public buildLogMessage<T extends UnbanMessageType = UnbanMessageType>(
+    type: T,
+    details: UnbanDetails<T>,
+  ): RESTPostAPIChannelMessageJSONBody {
     // Will build the base layout and if unbanned, make a "success" message and if not, make a "review" message
+    const builder = new UnbanMessageBuilder<T>();
     return {
       flags: ComponentsV2Flags,
-      components: UnbanMessageBuilder.build(details, type),
+      components: builder.build(details, type),
       allowed_mentions: {
         users: [details.user.id],
       },
     };
   }
 
-  public async sendLog(data: SendLogArgs) {
+  public async sendLog<T extends UnbanMessageType = UnbanMessageType>(data: SendLogArgs<T>, messageId?: string) {
     if (!this.enabled) return;
     if (!this._client) {
       console.error("UnbanLogger: Client not set. Cannot send log messages.");
       throw new Error("UnbanLogger: Client not set. Cannot send log messages.");
     }
 
-    const logMessage = this.buildLogMessage(
-      {
-        banReason: data.ban.reason ?? "No reason provided.",
-        executorId: data.executorId,
-        guildIconUrl: data.guildIconUrl,
-        guildName: data.guildName,
-        timestamp: ~~(data.ban.createdAt.getTime() / 1000),
-        user: data.user,
-      },
-      data.type,
-    );
-    await this._client.rest.post(Routes.channelMessages(data.loggingChannelId), { body: logMessage });
+    const { loggingChannelId, ...rest } = data;
+
+    const logMessage = this.buildLogMessage(data.type, rest);
+    if (!messageId) {
+      await this._client.rest.post(Routes.channelMessages(data.loggingChannelId), { body: logMessage });
+    } else {
+      await this._client.rest.patch(Routes.channelMessage(data.loggingChannelId, messageId), { body: logMessage });
+    }
   }
 }
 
