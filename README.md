@@ -18,7 +18,7 @@ A Discord bot for ban-synchronization across multiple servers.
 
 ## Getting Started
 
-Head over to the [Wiki](~/wiki) to get started with setting up your own instance of CrossBan.
+Head over to the [Wiki](https://github.com/The-LukeZ/CrossBan/wiki) to get started with setting up your own instance of CrossBan.
 
 ## License
 
