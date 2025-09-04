@@ -18,6 +18,18 @@ CREATE TABLE
         ban_event_id INTEGER REFERENCES ban_events (id), -- Links to the originating event
         applied_at TIMESTAMP DEFAULT NOW (),
         is_source BOOLEAN DEFAULT FALSE,
-        last_updated TIMESTAMP DEFAULT NOW (),
-        UNIQUE (user_id, guild_id, is_banned) -- One state record per user per guild because a user can only be banned once per guild (if they are banned)
+        last_updated TIMESTAMP DEFAULT NOW ()
     );
+
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT FROM pg_indexes 
+        WHERE indexname = 'unique_user_guild_when_banned' 
+        AND schemaname = 'public'
+    ) THEN
+        CREATE INDEX unique_user_guild_when_banned ON guild_bans (user_id, guild_id)
+        WHERE
+            is_banned = TRUE;
+    END IF;
+END $$;
