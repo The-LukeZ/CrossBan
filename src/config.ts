@@ -1,9 +1,7 @@
 import dotenv from "dotenv";
 
-const envName = process.env.NODE_ENV === "production" ? "production" : "local";
-
 dotenv.config({
-  path: `./.env.${envName}`,
+  path: `./.env`,
 });
 
 class BotConfig {
@@ -15,7 +13,6 @@ class BotConfig {
     public dbUrl: string,
     public readonly botToken: string,
     public readonly dbUser: string,
-    public readonly NODE_ENV: string,
     public readonly dbPassword?: string,
     public readonly dbName?: string,
   ) {
@@ -58,7 +55,6 @@ const botConfig = new BotConfig(
   process.env.DATABASE_URL || "",
   process.env.BOT_TOKEN || "",
   process.env.POSTGRES_USER || "crossban",
-  process.env.NODE_ENV || "development",
   process.env.POSTGRES_PASSWORD,
   process.env.POSTGRES_DB,
 );

@@ -24,10 +24,9 @@ const client = new Client({
   }),
 });
 
+const FILE_EXTENSION = ".js";
 let commands = new Collection<string, any>();
 let components = new Collection<string, any>();
-
-const FILE_EXTENSION = config.NODE_ENV === "development" ? ".ts" : ".js";
 
 // Function to load commands
 async function loadCommands() {
@@ -233,7 +232,7 @@ process
   console.info("[APP] Enabling ban sync manager...");
   getBanSyncManager().enable();
 
-  if (config.NODE_ENV !== "production") {
+  if (process.env.LOGGING_WEBHOOK) {
     setLogging(true);
   }
 
