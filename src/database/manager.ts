@@ -17,11 +17,12 @@ export class DBManager {
     const client: PoolClient = await this.pool.connect();
 
     try {
-      const files = await fs.readdir(path.join(__dirname, "./schemas"));
+      const files = await fs.readdir(path.resolve("/app/database/schemas"));
       const sqlFiles = files.filter((file) => file.endsWith(".sql"));
+      console.log("Resolved path:", path.resolve("/app/database/schemas"));
 
       for (const file of sqlFiles) {
-        const filePath = path.join(__dirname, "./schemas", file);
+        const filePath = path.resolve("/app/database/schemas", file);
         const sqlContent = await fs.readFile(filePath, "utf-8");
 
         await client.query(sqlContent);
