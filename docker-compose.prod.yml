@@ -18,6 +18,7 @@ services:
     build:
       context: .
       target: production
+    container_name: bot_live
     depends_on:
       - postgres
     env_file:

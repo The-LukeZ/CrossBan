@@ -17,6 +17,7 @@ services:
     build:
       context: .
       target: development
+    container_name: bot_dev
     depends_on:
       - postgres
     env_file: .env.local
