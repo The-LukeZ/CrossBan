@@ -172,6 +172,16 @@ client.once("clientReady", async (_client) => {
   });
 });
 
+process
+  .on("unhandledRejection", (reason, promise) => {
+    // ignore terminating session
+    if (reason === "terminating connection due to administrator command") return;
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  })
+  .on("uncaughtException", (error) => {
+    console.error("Uncaught Exception thrown:", error);
+  });
+
 (async function start() {
   console.info("[APP] Starting application initialization...");
 
