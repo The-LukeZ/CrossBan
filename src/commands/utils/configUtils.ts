@@ -74,8 +74,8 @@ async function handleUnbanSync(ctx: ChatInputCommandInteraction<"cached">) {
 
 const incomingBansDescription = (value: boolean) =>
   value
-    ? "Incoming bans are enabled. Bans issued on connected servers will be also applied to this server."
-    : "Incoming bans are disabled. Bans issued on connected servers will not be applied to this server.";
+    ? "Incoming bans are enabled.\nBans issued on connected servers **will be** also applied to this server."
+    : "Incoming bans are disabled.\nBans issued on connected servers **will not** be applied to this server.";
 
 async function handleIncomingBans(ctx: ChatInputCommandInteraction<"cached">) {
   // Just set the boolean option
@@ -93,8 +93,8 @@ async function handleIncomingBans(ctx: ChatInputCommandInteraction<"cached">) {
 
 const outgoingBansDescription = (value: boolean) =>
   value
-    ? "Outgoing bans are enabled. Bans issued on this server will be shared with connected servers."
-    : "Outgoing bans are disabled. Bans issued on this server will not be shared.";
+    ? "Outgoing bans are enabled.\nBans issued on this server **will be** shared with connected servers."
+    : "Outgoing bans are disabled.\nBans issued on this server **will not** be shared.";
 
 async function handleOutgoingBans(ctx: ChatInputCommandInteraction<"cached">) {
   // Just set the boolean option
