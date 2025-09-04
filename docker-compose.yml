@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+    restart: on-failure
 
   bot:
     build:
@@ -26,7 +26,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    restart: unless-stopped
+    restart: on-failure
 
 volumes:
   postgres_data:
