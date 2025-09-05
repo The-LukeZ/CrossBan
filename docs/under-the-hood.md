@@ -1,4 +1,4 @@
-# Low Level Explanation
+# Under the Hood
 
 This document provides a detailed, technical breakdown of how the CrossBan Discord bot operates, focusing on its code structure, execution flow, and key components. It's aimed at developers or those with programming knowledge. The bot is written in TypeScript using Discord.js and PostgreSQL.
 
@@ -50,9 +50,9 @@ const client = new Client({
 
 Functions like `loadCommands()`, `loadComponents()`, and `loadEvents()` scan directories and load files:
 
-* **loadCommands()**: Reads `commands/` folder, filters by extension, requires each file, and checks for `data` and `run` properties. Stores in a Collection.
-* **loadComponents()**: Similar for `components/`, checks for `prefix` and `run`.
-* **loadEvents()**: Scans `events/` subfolders (matching Discord Events enum), loads handlers.
+* **`loadCommands()`**: Reads `commands/` folder, filters by extension, requires each file, and checks for `data` and `run` properties. Stores in a Collection.
+* **`loadComponents()`**: Similar for `components/`, checks for `prefix` and `run`.
+* **`loadEvents()`**: Scans `events/` subfolders (matching Discord Events enum), loads handlers.
 
 Example for commands:
 
@@ -106,7 +106,7 @@ client.once("clientReady", async (_client) => {
 
 ### Event Handling
 
-Events are handled via `guildAuditLogEntryCreate` in banEventHandler.ts.
+Events are handled via `guildAuditLogEntryCreate` in `banEventHandler.ts`.
 
 #### Ban/Unban Detection
 
@@ -230,7 +230,7 @@ async function sendLogInternal(data: any): Promise<void> {
 
 ### Unban Logging
 
-`unbanLogger.ts` builds rich messages using Discord's component builders:
+`unbanLogger.ts` builds messages using Discord's component builders:
 
 ```typescript
 public buildLogMessage<T extends UnbanMessageType>(type: T, details: UnbanDetails<T>): RESTPostAPIChannelMessageJSONBody {
@@ -245,7 +245,7 @@ public buildLogMessage<T extends UnbanMessageType>(type: T, details: UnbanDetail
 
 * Creates containers with text, separators, thumbnails for unban details.
 * For review type, adds a select menu for actions.
-* Sends via REST API to logging channel.
+* Sends raw payload via REST API to logging channel.
 
 ## Configuration Management
 
