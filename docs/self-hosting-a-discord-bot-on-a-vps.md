@@ -24,7 +24,7 @@ Usually servers with those requirements cost around 3-5€ / month, depending on
 
 A server doesn't cost that much and I would recommend Venocix - a very reliable hosting solution from Germany.
 
-<a href="https://venocix.de/?config=Z5GQKB" class="button primary">Server suggestion</a>
+<a href="https://venocix.de/cart.php?a=add&#x26;pid=92" class="button primary">Server suggestion</a>
 {% endhint %}
 
 ### Software Requirements
