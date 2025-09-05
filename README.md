@@ -13,7 +13,7 @@ A Discord bot for ban-synchronization across multiple servers.
 - Ban synchronization across multiple communities
 - Easy to use and self-host (hopefully lol)
 - Written in TypeScript
-- Uses PostgreSQL 17
+- Uses PostgreSQL
 - Dockerized for easy deployment
 
 ## Getting Started
