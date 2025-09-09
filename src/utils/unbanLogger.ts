@@ -85,10 +85,10 @@ export class UnbanMessageBuilder<T extends UnbanMessageType> {
     return `### Action Taken\n- **Action:** ${texts[type]}\n- **Action Executor:** <@${userId}>`;
   }
 
-  public build(details: UnbanDetails<T>, type: T): APIMessageTopLevelComponent[] {
+  public build(details: UnbanDetails<T>, type: T, edit = false): APIMessageTopLevelComponent[] {
     const components: JSONEncodable<APIMessageTopLevelComponent>[] = [this.buildMainContainer(details, type)];
 
-    if (type === UnbanMessageType.REVIEW) {
+    if (type === UnbanMessageType.REVIEW && !edit) {
       components.push(this.buildActionRow(details.user.id));
     }
 
@@ -153,7 +153,7 @@ export class UnbanMessageBuilder<T extends UnbanMessageType> {
           `- **Servername:** ${details.guildName}\n` +
             `- **Timestamp:** <t:${details.banTimestamp}:f>\n` +
             `- **Executor:** <@${details.banExecutorId}>\n` +
-            `- **Reason:**\n  ${details.banReason}`,
+            `- **Reason:**\n\`\`\`${details.banReason}\`\`\``,
         ),
       );
   }
@@ -201,14 +201,15 @@ export class UnbanLogger {
   }
 
   public buildLogMessage<T extends UnbanMessageType = UnbanMessageType>(
-    type: T,
     details: UnbanDetails<T>,
+    type: T,
+    edit = false,
   ): RESTPostAPIChannelMessageJSONBody {
     // Will build the base layout and if unbanned, make a "success" message and if not, make a "review" message
     const builder = new UnbanMessageBuilder<T>();
     return {
       flags: ComponentsV2Flags,
-      components: builder.build(details, type),
+      components: builder.build(details, type, edit),
       allowed_mentions: {
         users: [details.user.id],
       },
@@ -222,9 +223,9 @@ export class UnbanLogger {
       throw new Error("UnbanLogger: Client not set. Cannot send log messages.");
     }
 
-    const { loggingChannelId, ...rest } = data;
+    const { loggingChannelId, type: dataType, ...rest } = data;
 
-    const logMessage = this.buildLogMessage(data.type, rest);
+    const logMessage = this.buildLogMessage(rest, dataType, !!messageId);
     if (!messageId) {
       await this._client.rest.post(Routes.channelMessages(data.loggingChannelId), { body: logMessage });
     } else {
