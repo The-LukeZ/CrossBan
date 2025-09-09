@@ -188,7 +188,10 @@ class BanSyncManager {
 
   async removeBan(data: { userId: string; sourceGuild: Guild; executorId: string }): Promise<void> {
     const ban = await dbManager.getBan(data.userId);
-    if (!ban) return;
+    if (!ban) {
+      console.debug(`No ban record found for user ${data.userId}. Nothing to remove.`);
+      return;
+    }
     if (!this.enabled) {
       console.error("BanSyncManager: Not enabled. Cannot remove bans.");
       return;
