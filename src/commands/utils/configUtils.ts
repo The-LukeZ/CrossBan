@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, Colors, ContainerBuilder, TextDisplayBuild
 import { dbManager } from "../../database/manager";
 import { buildSourceOfTruthMessage, EphemeralFlags, EphemeralV2Flags } from "../../utils/main";
 import { UnbanMode } from "../../database/types";
+import { setLogging } from "../../utils/logger";
 
 export async function handleConfigInteraction(ctx: ChatInputCommandInteraction<"cached">) {
   const subcommand = ctx.options.getSubcommand();
@@ -22,10 +23,27 @@ export async function handleConfigInteraction(ctx: ChatInputCommandInteraction<"
     case "outgoing-bans":
       await handleOutgoingBans(ctx);
       return;
+    case "debug-logging":
+      await handleDebugLogging(ctx);
+      return;
     default:
       await ctx.reply({ content: "Unknown subcommand", flags: 64 });
       return;
   }
+}
+
+async function handleDebugLogging(ctx: ChatInputCommandInteraction<"cached">) {
+  setLogging(ctx.options.getBoolean("enabled", true) ?? false);
+  await ctx.reply({
+    flags: EphemeralV2Flags,
+    components: [
+      new ContainerBuilder()
+        .setAccentColor(Colors.Green)
+        .addTextDisplayComponents((t) =>
+          t.setContent(`✅ Debug logging ${ctx.options.getBoolean("enabled", true) ? "enabled" : "disabled"}.`),
+        ),
+    ],
+  });
 }
 
 async function handleSourcesOfTruth(ctx: ChatInputCommandInteraction<"cached">) {

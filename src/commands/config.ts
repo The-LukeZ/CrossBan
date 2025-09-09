@@ -54,6 +54,14 @@ export const data = new SlashCommandBuilder()
       .addBooleanOption((op) =>
         op.setName("enabled").setDescription("Whether to sync bans issued in this server to connected servers").setRequired(true),
       ),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName("debug-logging")
+      .setDescription("Configure whether debug logging is enabled for the bot")
+      .addBooleanOption((op) =>
+        op.setName("enabled").setDescription("Whether debug logging is enabled for this server").setRequired(true),
+      ),
   );
 
 export const run = handleConfigInteraction;
