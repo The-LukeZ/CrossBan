@@ -50,7 +50,7 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
     };
   }
 
-  await delay(1000); // Don't get ratelimited
+  await delay(1); // Don't get ratelimited
 
   await getUnbanLogger().sendLog(
     {

@@ -217,7 +217,10 @@ export class UnbanLogger {
   }
 
   public async sendLog<T extends UnbanMessageType = UnbanMessageType>(data: SendLogArgs<T>, messageId?: string) {
-    if (!this.enabled) return;
+    if (!this.enabled) {
+      console.warn("UnbanLogger: Logging is disabled.");
+      return;
+    }
     if (!this._client) {
       console.error("UnbanLogger: Client not set. Cannot send log messages.");
       throw new Error("UnbanLogger: Client not set. Cannot send log messages.");
