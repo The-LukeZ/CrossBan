@@ -23,11 +23,12 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
   }
 
   await ctx.deferReply({ flags: EphemeralFlags });
-  const unban = (ctx.values[0] as "unban" | "ignore") === "unban";
+  const isUnbanAction = (ctx.values[0] as "unban" | "ignore") === "unban";
 
-  if (unban) {
+  if (isUnbanAction) {
     try {
       await ctx.guild.bans.remove(userId, `${gBan.id}: Manually unbanned by @${ctx.user.username} (${ctx.user.id})`);
+      await dbManager.removeGuildBan(userId, ctx.guild.id);
     } catch (error) {
       console.error(`Failed to unban user ${userId} in guild ${ctx.guild.id}:`, error);
       await ctx.editReply({
@@ -36,8 +37,8 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
       });
       return;
     }
-    await dbManager.removeGuildBan(userId, ctx.guild.id);
   }
+
   //If ignored, do nothing because the ban is still active in the guild
 
   let user: UnbanDetails<any>["user"] | null = await ctx.client.users.fetch(userId).catch(() => null);
@@ -63,15 +64,15 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
       guildIconUrl: ctx.guild.iconURL() ?? undefined,
       actionExecutorId: ctx.user.id,
       loggingChannelId: ctx.channelId,
-      type: unban ? UnbanMessageType.SUCCESS : UnbanMessageType.IGNORED,
+      type: isUnbanAction ? UnbanMessageType.SUCCESS : UnbanMessageType.IGNORED,
     },
     originalMessageId,
   );
 
-  await ctx.reply({
+  await ctx.editReply({
     flags: EphemeralV2Flags,
     components: [
-      new TextDisplayBuilder().setContent(unban ? `✅ Unbanned <@${userId}> locally.` : `❎ Ignored the ban for <@${userId}>.`),
+      new TextDisplayBuilder().setContent(isUnbanAction ? `✅ Unbanned <@${userId}> locally.` : `❎ Ignored the ban for <@${userId}>.`),
     ],
   });
 }
