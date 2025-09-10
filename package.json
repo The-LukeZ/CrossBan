@@ -4,7 +4,7 @@
   "description": "A Discord bot for synchronizing bans across multiple communities.",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "start": "node dist/index.js",
     "docker:start": "docker compose up -d",
     "docker:build": "docker compose up -d --build",

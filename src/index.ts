@@ -69,6 +69,7 @@ async function loadCommands() {
 
 // Function to load components
 async function loadComponents() {
+  console.log("Loading components... (1)");
   const newComponents = new Collection<string, any>();
   const componentsPath = pathJoin(__dirname, "components");
   const componentFiles = readdirSync(componentsPath, { encoding: "utf-8" })
@@ -81,7 +82,7 @@ async function loadComponents() {
   for (const file of componentFiles) {
     console.debug(`Loading component file: ${file}`);
     try {
-      const comp = await require(file);
+      const comp = require(file);
 
       console.debug("Component loaded:", comp);
 

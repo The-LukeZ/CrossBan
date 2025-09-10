@@ -10,7 +10,7 @@ RUN pnpm install
 COPY . .
 
 # Build for production
-RUN pnpm build
+RUN pnpm run build
 
 # Default to production, but can be overridden
 ENV NODE_ENV=production
