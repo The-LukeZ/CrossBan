@@ -1,4 +1,4 @@
-import { ChannelType, SlashCommandBuilder } from "discord.js";
+import { ChannelType, InteractionContextType, SlashCommandBuilder } from "discord.js";
 import { UnbanMode } from "../database/enums";
 import { handleConfigInteraction } from "./utils/configUtils";
 
@@ -6,6 +6,7 @@ export const data = new SlashCommandBuilder()
   .setName("config")
   .setDescription("Configure the bot")
   .setDefaultMemberPermissions(8) // Admin
+  .setContexts(InteractionContextType.Guild)
   .addSubcommand((sub) => sub.setName("sources-of-truth").setDescription("Configure the sources of truth for this server"))
   .addSubcommand((sub) =>
     sub

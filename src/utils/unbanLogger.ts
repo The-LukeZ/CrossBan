@@ -22,6 +22,7 @@ import {
   StringSelectMenuOptionBuilder,
   type MessageActionRowComponentBuilder,
 } from "discord.js";
+import { sendLog } from "./logger";
 
 export interface UnbanDetails<T extends UnbanMessageType = UnbanMessageType> {
   /**
@@ -230,8 +231,10 @@ export class UnbanLogger {
 
     const logMessage = this.buildLogMessage(rest, dataType, !!messageId);
     if (!messageId) {
+      sendLog(`Sending new unban log message to channel ${data.loggingChannelId}`);
       await this._client.rest.post(Routes.channelMessages(data.loggingChannelId), { body: logMessage });
     } else {
+      sendLog(`Updating unban log message ${messageId} in channel ${data.loggingChannelId}`);
       await this._client.rest.patch(Routes.channelMessage(data.loggingChannelId, messageId), { body: logMessage });
     }
   }

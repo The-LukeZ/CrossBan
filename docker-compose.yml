@@ -17,7 +17,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: dc-bot
+    container_name: crossban-bot
     depends_on:
       - postgres
     env_file: .env

@@ -65,6 +65,8 @@ class InteractionHandler implements IInteractionHandler {
     return async (...args) => {
       const [interaction] = args;
 
+      console.log(`Received interaction of type ${interaction.type} in guild ${interaction.guildId}`);
+
       if (!config.guildIds.includes(interaction.guildId!)) {
         if (!interaction.isAutocomplete()) {
           await interaction.reply({
@@ -77,6 +79,7 @@ class InteractionHandler implements IInteractionHandler {
 
       if (interaction.isCommand() || interaction.isAutocomplete()) {
         const command = this.#commands.get(interaction.commandName);
+        console.log(`Looking for command '${interaction.commandName}'`);
 
         if (!command) {
           console.log(`No command matching '${interaction.commandName}' was found.`);
@@ -104,6 +107,8 @@ class InteractionHandler implements IInteractionHandler {
         }
       } else if ((interaction.isMessageComponent() || interaction.isModalSubmit()) && !interaction.customId.startsWith("~/")) {
         const comp = this.#components.get(parseCustomId(interaction.customId, true));
+
+        console.log(`Looking for component '${interaction.customId}'`);
 
         if (!comp) {
           console.log(`No component matching '${interaction.customId}' was found.`);

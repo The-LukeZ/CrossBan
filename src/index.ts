@@ -71,15 +71,19 @@ async function loadCommands() {
 async function loadComponents() {
   const newComponents = new Collection<string, any>();
   const componentsPath = pathJoin(__dirname, "components");
-  const componentFiles = readdirSync(componentsPath)
+  const componentFiles = readdirSync(componentsPath, { encoding: "utf-8" })
     .filter((file) => file.endsWith(FILE_EXTENSION))
     .map((fn) => pathJoin(componentsPath, fn));
 
-  console.debug("Loading components...");
+  console.debug("Components path:", componentsPath);
+  console.debug("Component files found:", componentFiles);
 
   for (const file of componentFiles) {
+    console.debug(`Loading component file: ${file}`);
     try {
-      const comp = require(file);
+      const comp = await require(file);
+
+      console.debug("Component loaded:", comp);
 
       if (comp && "prefix" in comp && "run" in comp) {
         newComponents.set(comp.prefix, comp);
@@ -98,6 +102,7 @@ async function loadComponents() {
   newComponents.forEach((value, key) => {
     components.set(key, value);
   });
+  console.log(`Loaded ${components.size} component(s):`, Array.from(components.keys()));
   return components;
 }
 
@@ -150,7 +155,7 @@ async function loadAllModules() {
   setupInteractionHandlers();
 }
 
-client.once("clientReady", async (_client) => {
+client.on("clientReady", async (_client) => {
   config.setClientId(_client.application.id);
   console.log(`${_client.user.username} is online!`);
 
