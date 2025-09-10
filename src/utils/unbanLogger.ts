@@ -83,7 +83,12 @@ export class UnbanMessageBuilder<T extends UnbanMessageType> {
       [UnbanMessageType.SUCCESS]: "🔨 Unbanned",
       [UnbanMessageType.IGNORED]: "❌ Ignored",
     };
-    return `### Action Taken\n- **Action:** ${texts[type]}\n- **Action Executor:** <@${userId}>`;
+    return [
+      "### Action Taken",
+      `- **Action:** ${texts[type]}`,
+      `- **Action Executor:** <@${userId}>`,
+      `-#- **Timestamp:** <t:${Math.floor(Date.now() / 1000)}:t>`,
+    ].join("\n");
   }
 
   public build(details: UnbanDetails<T>, type: T, edit = false): APIMessageTopLevelComponent[] {
