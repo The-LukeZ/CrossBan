@@ -2,6 +2,7 @@
 
 * [Home](README.md)
 * [Overview](overview.md)
+* [Changelog](changelog.md)
 * [Installation and Setup](installation-and-setup.md)
 * [How Ban Synchronization Works](how-ban-synchronization-works.md)
 * [Configuration](configuration.md)
