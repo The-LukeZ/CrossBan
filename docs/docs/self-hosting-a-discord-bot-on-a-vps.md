@@ -108,13 +108,13 @@ A server doesn't cost that much and I would recommend Venocix - a very reliable 
 2.  Disable the General **Install Link** and only allow **Guild Install**.\
 
 
-    <div align="center"><figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure></div>
+    <div align="center"><figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure></div>
 
 
 3.  Go to the Bot page and disable The Public bot and Regenerate your Bot's Token.\
 
 
-    <figure><img src=".gitbook/assets/485610768-1f4efb96-e104-49f1-ae43-a77da590b314.png" alt=""><figcaption><p>Disable Public bot because otherwise anyone will invite your bot - you don't want that.</p></figcaption></figure>
+    <figure><img src="../.gitbook/assets/485610768-1f4efb96-e104-49f1-ae43-a77da590b314.png" alt=""><figcaption><p>Disable Public bot because otherwise anyone will invite your bot - you don't want that.</p></figcaption></figure>
 4. Under your bot application, go to **OAuth2** > **OAuth2 URL Generator**.
 5. Select scopes: `bot`, `applications.commands`.
 6. Select permissions: **Ban Members**, **View Audit Log**, **Send Messages**, **Use Slash Commands**.

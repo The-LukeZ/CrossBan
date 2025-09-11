@@ -23,5 +23,5 @@ When a user is banned in one server, the bot can ban them in others, preventing 
 The bot uses a database to store ban records and server settings. It's not a public bot - you host it yourself.
 
 {% hint style="info" %}
-If you are interested in getting an understanding of how the bot works under the hood, visit [under-the-hood.md](under-the-hood.md "mention").
+If you are interested in getting an understanding of how the bot works under the hood, visit [under-the-hood.md](docs/under-the-hood.md "mention").
 {% endhint %}

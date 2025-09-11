@@ -22,4 +22,4 @@ CrossBan synchronizes bans across multiple Discord servers, helping maintain con
 
 ***
 
-<table data-view="cards" data-full-width="false"><thead><tr><th data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><a href="overview.md">overview.md</a></td></tr><tr><td><a href="installation-and-setup.md">installation-and-setup.md</a></td></tr><tr><td><a href="self-hosting-a-discord-bot-on-a-vps.md">self-hosting-a-discord-bot-on-a-vps.md</a></td></tr></tbody></table>
+<table data-view="cards" data-full-width="false"><thead><tr><th data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><a href="overview.md">overview.md</a></td></tr><tr><td><a href="docs/installation-and-setup.md">installation-and-setup.md</a></td></tr><tr><td><a href="docs/self-hosting-a-discord-bot-on-a-vps.md">self-hosting-a-discord-bot-on-a-vps.md</a></td></tr></tbody></table>

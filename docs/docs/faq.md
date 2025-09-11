@@ -14,7 +14,7 @@ An `.env` file is a simple text file used to store configuration settings or env
 
 This helps keep sensitive information secure and separate from the main application code, making it easier to manage and update configurations.
 
-<a href="../.env.example" class="button secondary" data-icon="key-skeleton">Example .env</a>
+<a href="../../.env.example" class="button secondary" data-icon="key-skeleton">Example .env</a>
 
 
 
