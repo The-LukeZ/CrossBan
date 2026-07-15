@@ -22,7 +22,15 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
       flags: EphemeralV2Flags,
       components: [new TextDisplayBuilder().setContent(`:x: <@${userId}> is not banned in this server.`)],
     });
-    // TODO: Maybe create new guild ban for user in db if not exists? (with is_banned = false)
+
+    if (!ban) {
+      // Discord shows no active ban here; reconcile guild_bans so stale/missing rows don't
+      // linger as "banned" for a user who isn't actually banned in this guild anymore.
+      await dbManager.syncGuildBanAsNotBanned(userId, ctx.guildId, gBan?.id ?? null).catch((error) => {
+        sendLog(`Failed to sync guild ban as not-banned for user ${userId} in guild ${ctx.guildId}:`);
+        console.error("Failed to sync guild ban", error);
+      });
+    }
     return;
   }
 

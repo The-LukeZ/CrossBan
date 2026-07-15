@@ -202,6 +202,22 @@ export class DBManager {
     ]);
   }
 
+  /**
+   * Ensures a `guild_bans` row exists for (userId, guildId) with `is_banned = FALSE`.
+   * Updates the row if one exists (regardless of its current state), otherwise inserts a new one.
+   * Used to reconcile db state when Discord shows no active ban but the db is stale or has no record.
+   */
+  async syncGuildBanAsNotBanned(userId: string, guildId: string, banEventId: number | null): Promise<void> {
+    const updateResult = await this.query(
+      "UPDATE guild_bans SET is_banned = FALSE, last_updated = NOW() WHERE user_id = $1 AND guild_id = $2",
+      [userId, guildId],
+    );
+
+    if (updateResult.rowCount === 0) {
+      await this.createGuildBan({ userId, guildId, isBanned: false, banEventId });
+    }
+  }
+
   async getGuildBansForUser(userId: string): Promise<GuildBan[]> {
     const result = await this.query("SELECT * FROM guild_bans WHERE user_id = $1 AND is_banned = TRUE", [userId]);
     return result.rows.map(dbGuildBanToObject);
