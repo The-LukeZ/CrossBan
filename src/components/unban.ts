@@ -9,7 +9,6 @@ export const prefix = "unban";
 export async function run(ctx: StringSelectMenuInteraction<"cached">) {
   const originalMessageId = ctx.message.id;
   sendLog(`Handling unban interaction in guild ${ctx.guildId} by user ${ctx.user.id}`);
-  await ctx.message.edit({ components: ctx.message.components });
 
   const { firstParam: userId } = parseCustomId(ctx.customId) as { firstParam: string };
   const ban = await ctx.guild.bans.fetch(userId).catch(() => null);
@@ -36,7 +35,6 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
     try {
       sendLog(`Attempting to unban user ${userId} in guild ${ctx.guild.id}`);
       await ctx.guild.bans.remove(userId, `${gBan.id}: Manually unbanned by @${ctx.user.username} (${ctx.user.id})`);
-      await dbManager.removeGuildBan(userId, ctx.guild.id);
     } catch (error) {
       sendLog(`Failed to unban user ${userId} in guild ${ctx.guild.id}:`);
       console.error("Failed to unban", error);
@@ -45,6 +43,14 @@ export async function run(ctx: StringSelectMenuInteraction<"cached">) {
         components: [new TextDisplayBuilder().setContent(`:x: Failed to unban <@${userId}>. Do I have the correct permissions?`)],
       });
       return;
+    }
+
+    try {
+      await dbManager.removeGuildBan(userId, ctx.guild.id);
+    } catch (error) {
+      // Discord-side unban already succeeded; don't block the log update on a DB desync.
+      sendLog(`Failed to remove guild ban from DB for user ${userId} in guild ${ctx.guild.id}:`);
+      console.error("Failed to remove guild ban from DB", error);
     }
   } else {
     sendLog(`Ignoring ban for user ${userId} in guild ${ctx.guild.id}`);
