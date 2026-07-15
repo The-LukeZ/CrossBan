@@ -19,19 +19,19 @@
     "moderation",
     "synchronization"
   ],
-  "author": "",
+  "author": "The-LukeZ",
   "license": "PolyForm Noncommercial License 1.0.0",
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@11.13.0",
   "type": "commonjs",
   "dependencies": {
-    "@types/pg": "^8.15.5",
-    "discord.js": "^14.22.1",
-    "dotenv": "^17.2.1",
-    "pg": "^8.16.3",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "@types/pg": "^8.20.0",
+    "discord.js": "^14.26.5",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0"
+    "@types/node": "^26.1.1"
   }
 }
